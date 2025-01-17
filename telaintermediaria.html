@@ -325,6 +325,14 @@
           window.location.href = `tela_checkins_evento.html?eventId=${eventId}`;
         }
 
+        function redirectToLogin(eventId) {
+          console.log(
+            "Redirecionando para tela de login com eventId:",
+            eventId
+          );
+          window.location.href = `tela_login_evento.html?eventId=${eventId}`;
+        }
+
         async function showUserInfo(user) {
           const userInfoIcon = document.getElementById("userInfoIcon");
           const userInfoPopup = document.getElementById("userInfoPopup");
@@ -374,6 +382,7 @@
 
         window.toggleDetails = toggleDetails;
         window.redirectToCheckins = redirectToCheckins;
+        window.redirectToLogin = redirectToLogin;
       })();
     </script>
   </body>
