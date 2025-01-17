@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro do Responsável pelo Evento</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .back-button:hover {
+        background-color: #0056b3;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 5px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      #limpar {
+        background-color: #dc3545;
+      }
+
+      #limpar:hover {
+        background-color: #c82333;
+      }
+    </style>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+      async function fetchFirebaseConfig() {
+        const response = await fetch("firebase-config.json");
+        return response.json();
+      }
+
+      (async () => {
+        const firebaseConfig = await fetchFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document
+          .getElementById("cadastroForm")
+          .addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const cpfCnpj = document.getElementById("cpf_cnpj").value.trim();
+            const telefone = document.getElementById("telefone").value.trim();
+            const senha = document.getElementById("senha").value;
+
+            if (!nome || !email || !cpfCnpj || !telefone || !senha) {
+              alert("Todos os campos são obrigatórios.");
+              return;
+            }
+
+            try {
+              const userQueryByEmail = query(
+                collection(db, "responsaveis"),
+                where("email", "==", email)
+              );
+              const emailSnapshot = await getDocs(userQueryByEmail);
+
+              if (!emailSnapshot.empty) {
+                alert("Já existe um cadastro com este e-mail.");
+                return;
+              }
+
+              const userQueryByCpfCnpj = query(
+                collection(db, "responsaveis"),
+                where("cpfCnpj", "==", cpfCnpj)
+              );
+              const cpfCnpjSnapshot = await getDocs(userQueryByCpfCnpj);
+
+              if (!cpfCnpjSnapshot.empty) {
+                alert("Já existe um cadastro com este CPF/CNPJ.");
+                return;
+              }
+
+              const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                senha
+              );
+              const userId = userCredential.user.uid;
+
+              await addDoc(collection(db, "responsaveis"), {
+                uid: userId,
+                nome,
+                email,
+                cpfCnpj,
+                telefone,
+                dataCadastro: new Date(),
+              });
+
+              alert("Cadastro realizado com sucesso!");
+              window.location.href = "telaintermediaria.html?success=true";
+            } catch (error) {
+              console.error("Erro ao cadastrar: ", error);
+              alert("Erro ao cadastrar: " + error.message);
+            }
+          });
+      })();
+    </script>
+  </head>
+  <body>
+    <button class="back-button" onclick="window.location.href='index.html'">
+      Voltar para Login
+    </button>
+    <div class="container">
+      <h1>Preencha os Dados do Responsável pelo Evento</h1>
+      <form id="cadastroForm">
+        <div class="form-group">
+          <label for="nome">Nome:</label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            placeholder="Digite o nome completo"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Digite seu e-mail"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="cpf_cnpj">CPF ou CNPJ:</label>
+          <input
+            type="text"
+            id="cpf_cnpj"
+            name="cpf_cnpj"
+            placeholder="Digite CPF ou CNPJ"
+            pattern="\d{11}|\d{14}"
+            title="Digite 11 números para CPF ou 14 para CNPJ"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone:</label>
+          <input
+            type="text"
+            id="telefone"
+            name="telefone"
+            placeholder="Digite o telefone com DDD"
+            pattern="\d{10,11}"
+            title="Digite um telefone com 10 ou 11 números"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="senha">Senha:</label>
+          <input
+            type="password"
+            id="senha"
+            name="senha"
+            placeholder="Digite sua senha"
+            pattern="^(?=.*[!@#$%^&*])(?=.*\d).{8,}$"
+            title="A senha deve ter pelo menos 8 caracteres, um número e um caractere especial"
+            required
+          />
+        </div>
+
+        <button type="submit">Cadastrar</button>
+        <button type="reset" id="limpar">Limpar formulário</button>
+      </form>
+    </div>
+  </body>
+</html>

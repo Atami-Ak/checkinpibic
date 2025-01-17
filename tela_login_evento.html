@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela de Login do Evento</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f5;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .event-info h1 {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .event-info p {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form label {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        form input {
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        form button {
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+            form input {
+                font-size: 1em;
+                padding: 10px;
+            }
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        // Configuração do Firebase
+        async function fetchFirebaseConfig() {
+            const response = await fetch("firebase-config.json");
+            return response.json();
+        }
+
+        (async () => {
+            const firebaseConfig = await fetchFirebaseConfig();
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            // Obtém o ID do evento da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+
+            if (!eventId) {
+                alert("ID do evento não fornecido. Redirecionando para a tela inicial.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Busca os detalhes do evento no Firestore
+            try {
+                const eventDoc = await getDoc(doc(db, "eventos", eventId));
+                if (!eventDoc.exists()) {
+                    alert("Evento não encontrado. Redirecionando para a tela inicial.");
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const eventData = eventDoc.data();
+
+                // Atualiza as informações do evento na página
+                document.querySelector('.event-info h1').innerText = eventData.nome;
+                document.querySelector('.event-info p:nth-child(2)').innerText = `Data: ${new Date(eventData.dataHora).toLocaleString()}`;
+                document.querySelector('.event-info p:nth-child(3)').innerText = `Local: ${eventData.endereco}, ${eventData.numero}, ${eventData.cidade}`;
+                document.querySelector('.event-info p:nth-child(4)').innerText = `Descrição: ${eventData.descricao}`;
+            } catch (error) {
+                console.error("Erro ao carregar os detalhes do evento:", error);
+                alert("Erro ao carregar os detalhes do evento. Tente novamente mais tarde.");
+                window.location.href = 'index.html';
+            }
+
+            document.getElementById('login-form').addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const nomeCompleto = document.getElementById('nome-completo').value.trim();
+                const cpf = document.getElementById('cpf').value.trim();
+                const telefone = document.getElementById('telefone').value.trim();
+                const email = document.getElementById('email').value.trim();
+
+                if (!nomeCompleto || !cpf || !telefone || !email) {
+                    alert("Por favor, preencha todos os campos corretamente.");
+                    return;
+                }
+
+                try {
+                    await addDoc(collection(db, "checkins"), {
+                        eventId: eventId,
+                        nomeCompleto: nomeCompleto,
+                        cpf: cpf,
+                        telefone: telefone,
+                        email: email,
+                        checkInTime: serverTimestamp()
+                    });
+
+                    alert("Check-in realizado com sucesso!");
+                    document.getElementById('login-form').reset();
+                } catch (error) {
+                    console.error("Erro ao realizar o check-in: ", error);
+                    alert("Erro ao realizar o check-in. Tente novamente.");
+                }
+            });
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Informações do evento -->
+        <div class="event-info">
+            <h1>Carregando...</h1>
+            <p>Carregando...</p>
+            <p>Carregando...</p>
+            <p>Carregando...</p>
+        </div>
+
+        <!-- Formulário de login -->
+        <form id="login-form">
+            <label for="nome-completo">Nome Completo:</label>
+            <input type="text" id="nome-completo" name="nome-completo" required>
+
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" name="cpf" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato: 000.000.000-00" placeholder="000.000.000-00">
+
+            <label for="telefone">Número de Telefone:</label>
+            <input type="text" id="telefone" name="telefone" required pattern="\(\d{2}\) \d{4,5}-\d{4}" title="Formato: (00) 00000-0000" placeholder="(00) 00000-0000">
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+</body>
+</html>

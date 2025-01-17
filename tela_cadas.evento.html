@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Evento</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #e9ecef;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #343a40;
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #495057;
+      }
+
+      input[type="text"],
+      input[type="datetime-local"],
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 16px;
+        color: #495057;
+        background-color: #f8f9fa;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 15px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f1f1f1;
+        font-size: 16px;
+      }
+
+      textarea {
+        resize: none;
+        height: 100px;
+      }
+
+      .buttons {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button[type="button"] {
+        background-color: #007bff;
+        color: #fff;
+      }
+
+      button[type="reset"] {
+        background-color: #dc3545;
+        color: #fff;
+      }
+
+      .success-message {
+        color: green;
+        font-weight: bold;
+        margin-top: 10px;
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        .buttons {
+          flex-direction: column;
+        }
+
+        button {
+          width: 100%;
+          margin-bottom: 10px;
+        }
+      }
+    </style>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+      async function fetchFirebaseConfig() {
+        const response = await fetch("firebase-config.json");
+        return response.json();
+      }
+
+      (async () => {
+        const firebaseConfig = await fetchFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            currentUser = user;
+          } else {
+            alert("Usuário não autenticado. Redirecionando para o login.");
+            window.location.href = "index.html";
+          }
+        });
+
+        async function saveEvent() {
+          if (!currentUser) {
+            alert("Erro ao identificar o usuário. Faça login novamente.");
+            return;
+          }
+
+          const eventName = document.getElementById("eventName").value.trim();
+          const eventDescription = document
+            .getElementById("eventDescription")
+            .value.trim();
+          const eventDateTime = document
+            .getElementById("eventDateTime")
+            .value.trim();
+          const location = document.getElementById("location").value.trim();
+          const number = document.getElementById("number").value.trim();
+          const city = document.getElementById("city").value.trim();
+          const neighborhood = document
+            .getElementById("neighborhood")
+            .value.trim();
+          const state = document.getElementById("state").value;
+
+          if (
+            !eventName ||
+            !eventDescription ||
+            !eventDateTime ||
+            !location ||
+            !number ||
+            !city ||
+            !neighborhood ||
+            !state
+          ) {
+            alert("Todos os campos são obrigatórios.");
+            return;
+          }
+
+          try {
+            await addDoc(collection(db, "eventos"), {
+              nome: eventName,
+              descricao: eventDescription,
+              dataHora: new Date(eventDateTime).toISOString(),
+              endereco: location,
+              numero: number,
+              bairro: neighborhood,
+              cidade: city,
+              estado: state,
+              organizadorId: currentUser.uid,
+              criadoEm: serverTimestamp(),
+            });
+
+            alert("Evento salvo com sucesso!");
+            window.location.href = `telaintermediaria.html?success=true`;
+          } catch (error) {
+            console.error("Erro ao salvar o evento: ", error);
+            alert("Erro ao salvar o evento. Tente novamente.");
+          }
+        }
+
+        window.saveEvent = saveEvent;
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Cadastro de Evento</h1>
+      <form id="eventForm">
+        <div class="form-group">
+          <label for="eventName">Nome do Evento:</label>
+          <input
+            type="text"
+            id="eventName"
+            placeholder="Digite o nome do evento"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="eventDescription">Descrição:</label>
+          <textarea
+            id="eventDescription"
+            placeholder="Descreva o evento (até 200 caracteres)"
+            maxlength="200"
+            required
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label for="eventDateTime">Data e Hora:</label>
+          <input type="datetime-local" id="eventDateTime" required />
+        </div>
+        <div class="form-group">
+          <label for="location">Endereço:</label>
+          <input type="text" id="location" placeholder="Endereço" required />
+          <input type="text" id="number" placeholder="Número" required />
+          <input type="text" id="city" placeholder="Cidade" required />
+          <input type="text" id="neighborhood" placeholder="Bairro" required />
+          <select id="state" required>
+            <option value="">Selecione o estado</option>
+            <option value="AC">Acre</option>
+            <option value="AL">Alagoas</option>
+            <option value="AP">Amapá</option>
+            <option value="AM">Amazonas</option>
+            <option value="BA">Bahia</option>
+            <option value="CE">Ceará</option>
+            <option value="DF">Distrito Federal</option>
+            <option value="ES">Espírito Santo</option>
+            <option value="GO">Goiás</option>
+            <option value="MA">Maranhão</option>
+            <option value="MT">Mato Grosso</option>
+            <option value="MS">Mato Grosso do Sul</option>
+            <option value="MG">Minas Gerais</option>
+            <option value="PA">Pará</option>
+            <option value="PB">Paraíba</option>
+            <option value="PR">Paraná</option>
+            <option value="PE">Pernambuco</option>
+            <option value="PI">Piauí</option>
+            <option value="RJ">Rio de Janeiro</option>
+            <option value="RN">Rio Grande do Norte</option>
+            <option value="RS">Rio Grande do Sul</option>
+            <option value="RO">Rondônia</option>
+            <option value="RR">Roraima</option>
+            <option value="SC">Santa Catarina</option>
+            <option value="SP">São Paulo</option>
+            <option value="SE">Sergipe</option>
+            <option value="TO">Tocantins</option>
+          </select>
+        </div>
+        <div class="form-group buttons">
+          <button type="button" onclick="saveEvent()">Salvar Evento</button>
+          <button type="reset">Limpar</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

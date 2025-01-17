@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ceep Check-in</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        flex-direction: column;
+      }
+
+      .welcome-text {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        width: 100%;
+      }
+
+      .container {
+        display: flex;
+        width: 80%;
+        max-width: 1200px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .login-form,
+      .register-info {
+        padding: 20px;
+        flex: 1;
+      }
+
+      .login-form {
+        border-right: 2px solid #ddd;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .input-group {
+        margin-bottom: 15px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .btn:hover {
+        background-color: #0056b3;
+      }
+
+      .register-info p {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .register-info button {
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .register-info button:hover {
+        background-color: #218838;
+      }
+
+      .form-error {
+        color: red;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      .global-message {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .success {
+        color: green;
+      }
+
+      .error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="welcome-text">Bem-vindo ao Ceep Check-in</div>
+
+    <div id="global-message" class="global-message"></div>
+
+    <div
+      id="system-message"
+      style="text-align: center; margin-top: 15px; font-size: 16px"
+    ></div>
+
+    <div class="container">
+      <div class="login-form">
+        <h1>Login</h1>
+        <div class="input-group">
+          <label for="user">CPF, CNPJ ou E-mail</label>
+          <input
+            type="text"
+            id="user"
+            placeholder="Digite seu CPF, CNPJ ou E-mail"
+          />
+          <div id="user-error" class="form-error"></div>
+        </div>
+        <div class="input-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Digite sua senha" />
+          <div id="password-error" class="form-error"></div>
+        </div>
+        <button class="btn" onclick="validateLogin()">Entrar</button>
+      </div>
+
+      <div class="register-info">
+        <p>Ainda não possui conta?</p>
+        <button id="register-btn">Registrar-se</button>
+      </div>
+    </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+      // Carregar configurações do Firebase
+      fetch("firebase-config.json")
+        .then((response) => response.json())
+        .then((config) => {
+          const app = initializeApp(config);
+          const auth = getAuth(app);
+          const db = getFirestore(app);
+
+          async function validateLogin() {
+            const user = document.getElementById("user").value.trim();
+            const password = document.getElementById("password").value;
+
+            document.getElementById("user-error").innerText = "";
+            document.getElementById("password-error").innerText = "";
+            document.getElementById("system-message").innerText = "";
+
+            let hasError = false;
+
+            if (!user) {
+              document.getElementById("user-error").innerText =
+                "Por favor, insira seu CPF, CNPJ ou E-mail.";
+              hasError = true;
+            }
+
+            if (!password) {
+              document.getElementById("password-error").innerText =
+                "Por favor, insira sua senha.";
+              hasError = true;
+            }
+
+            if (hasError) return;
+
+            try {
+              let email = user;
+
+              // Verificar se o usuário forneceu CPF ou CNPJ
+              if (!user.includes("@")) {
+                const querySnapshot = await getDocs(
+                  query(
+                    collection(db, "users"),
+                    where("cpf", "==", user),
+                    where("cnpj", "==", user)
+                  )
+                );
+
+                if (querySnapshot.empty) {
+                  document.getElementById("user-error").innerText =
+                    "CPF ou CNPJ não encontrado. Verifique as informações.";
+                  return;
+                }
+
+                email = querySnapshot.docs[0].data().email;
+              }
+
+              // Fazer login com o e-mail e a senha
+              const userCredential = await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+              );
+
+              document.getElementById("system-message").innerText =
+                "Login realizado com sucesso!";
+              document.getElementById("system-message").style.color = "green";
+
+              setTimeout(() => {
+                window.location.href = "telaintermediaria.html";
+              }, 2000);
+            } catch (error) {
+              if (error.code === "auth/user-not-found") {
+                document.getElementById("user-error").innerText =
+                  "Usuário não encontrado. Verifique as informações.";
+              } else if (error.code === "auth/wrong-password") {
+                document.getElementById("password-error").innerText =
+                  "Senha incorreta. Tente novamente.";
+              } else {
+                document.getElementById("system-message").innerText =
+                  "Erro ao fazer login. Tente novamente mais tarde.";
+                document.getElementById("system-message").style.color = "red";
+              }
+            }
+          }
+
+          document
+            .getElementById("register-btn")
+            .addEventListener("click", function () {
+              window.location.href = "tela_cadastro_dono_evento.html";
+            });
+
+          window.validateLogin = validateLogin;
+        })
+        .catch((error) => {
+          console.error("Erro ao carregar configurações do Firebase:", error);
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventos</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background: linear-gradient(120deg, #84fab0, #8fd3f4);
+        margin: 0;
+        padding: 0;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        position: relative;
+      }
+
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 800px;
+        position: relative;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        font-size: 2rem;
+        margin-bottom: 20px;
+      }
+
+      .event-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .event-item {
+        background: #f9f9f9;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transition: transform 0.2s ease;
+      }
+
+      .event-item:hover {
+        transform: translateY(-5px);
+      }
+
+      .event-item span {
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 10px;
+      }
+
+      .details {
+        display: none;
+        margin-top: 10px;
+        padding: 10px;
+        background: #e9ecef;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+
+      .details p {
+        margin: 5px 0;
+      }
+
+      .details button {
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .details button:hover {
+        background: #0056b3;
+      }
+
+      .btn-checkin {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #17a2b8;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .btn-checkin:hover {
+        background: #117a8b;
+      }
+
+      .buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        gap: 15px;
+      }
+
+      .buttons button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .btn-continue {
+        background: #28a745;
+        color: #fff;
+      }
+
+      .btn-continue:hover {
+        background: #218838;
+      }
+
+      .user-info-icon {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background-color: #ffc107;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .user-info-popup {
+        position: absolute;
+        top: 70px;
+        left: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: none;
+        z-index: 1000;
+      }
+
+      .user-info-popup p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .popup-back-button {
+        margin-top: 10px;
+        display: block;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        padding: 8px 12px;
+        text-align: center;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .popup-back-button:hover {
+        background-color: #c82333;
+      }
+
+      @media (max-width: 600px) {
+        .buttons {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .buttons button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="user-info-icon" id="userInfoIcon">?</div>
+    <div class="user-info-popup" id="userInfoPopup">
+      <p id="userName">Nome:</p>
+      <p id="userEmail">Email:</p>
+      <button
+        class="popup-back-button"
+        onclick="window.location.href='index.html'"
+      >
+        Voltar ao Login
+      </button>
+    </div>
+    <div class="container">
+      <h1>Seus Eventos</h1>
+      <div class="event-list" id="eventList">
+        <p id="noEventsMessage">Nenhum evento criado ainda.</p>
+      </div>
+      <div class="buttons">
+        <button
+          class="btn-continue"
+          onclick="window.location.href='tela_cadas.evento.html'"
+        >
+          Cadastrar Novo Evento
+        </button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+      async function fetchFirebaseConfig() {
+        const response = await fetch("firebase-config.json");
+        return response.json();
+      }
+
+      (async () => {
+        const firebaseConfig = await fetchFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        function loadEvents(userId) {
+          const eventList = document.getElementById("eventList");
+          const noEventsMessage = document.getElementById("noEventsMessage");
+
+          (async () => {
+            try {
+              const q = query(
+                collection(db, "eventos"),
+                where("organizadorId", "==", userId)
+              );
+              const querySnapshot = await getDocs(q);
+
+              if (querySnapshot.empty) {
+                noEventsMessage.style.display = "block";
+                return;
+              }
+
+              noEventsMessage.style.display = "none";
+              querySnapshot.forEach((doc) => {
+                const eventData = doc.data();
+                const eventItem = document.createElement("div");
+                eventItem.className = "event-item";
+
+                const detailsId = `details-${doc.id}`;
+                const buttonId = `share-${doc.id}`;
+
+                eventItem.innerHTML = `
+                  <span>${eventData.nome}</span>
+                  <button class="btn-checkin" onclick="redirectToCheckins('${
+                    doc.id
+                  }')">Ver Check-ins</button>
+                  <button onclick="toggleDetails('${detailsId}', '${buttonId}')">Ver Detalhes</button>
+                  <div id="${detailsId}" class="details">
+                    <p><strong>Descrição:</strong> ${eventData.descricao}</p>
+                    <p><strong>Data e Hora:</strong> ${new Date(
+                      eventData.dataHora
+                    ).toLocaleString()}</p>
+                    <p><strong>Endereço:</strong> ${eventData.endereco}, ${
+                  eventData.numero
+                }, ${eventData.bairro}, ${eventData.cidade} - ${
+                  eventData.estado
+                }</p>
+                    <button id="${buttonId}" style="display:none;" onclick="redirectToLogin('${
+                  doc.id
+                }')">Compartilhar</button>
+                  </div>
+                `;
+
+                eventList.appendChild(eventItem);
+              });
+            } catch (error) {
+              console.error("Erro ao carregar eventos:", error);
+            }
+          })();
+        }
+
+        function toggleDetails(detailsId, buttonId) {
+          const details = document.getElementById(detailsId);
+          const shareButton = document.getElementById(buttonId);
+          const isVisible = details.style.display === "block";
+          details.style.display = isVisible ? "none" : "block";
+          shareButton.style.display = isVisible ? "none" : "block";
+        }
+
+        function redirectToCheckins(eventId) {
+          window.location.href = `tela_checkins_evento.html?eventId=${eventId}`;
+        }
+
+        async function showUserInfo(user) {
+          const userInfoIcon = document.getElementById("userInfoIcon");
+          const userInfoPopup = document.getElementById("userInfoPopup");
+          const userName = document.getElementById("userName");
+          const userEmail = document.getElementById("userEmail");
+
+          try {
+            const q = query(
+              collection(db, "responsaveis"),
+              where("uid", "==", user.uid)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const userData = querySnapshot.docs[0].data();
+              userName.textContent = `Nome: ${
+                userData.nome || "Não disponível"
+              }`;
+              userEmail.textContent = `Email: ${
+                userData.email || "Não disponível"
+              }`;
+            } else {
+              userName.textContent = "Nome: Não encontrado";
+              userEmail.textContent = "Email: Não encontrado";
+            }
+          } catch (error) {
+            console.error("Erro ao buscar informações do usuário:", error);
+            userName.textContent = "Nome: Erro ao buscar";
+            userEmail.textContent = "Email: Erro ao buscar";
+          }
+
+          userInfoIcon.addEventListener("click", () => {
+            const isPopupVisible = userInfoPopup.style.display === "block";
+            userInfoPopup.style.display = isPopupVisible ? "none" : "block";
+          });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            loadEvents(user.uid);
+            showUserInfo(user);
+          } else {
+            alert("Usuário não autenticado. Redirecionando para o login.");
+            window.location.href = "index.html";
+          }
+        });
+
+        window.toggleDetails = toggleDetails;
+        window.redirectToCheckins = redirectToCheckins;
+      })();
+    </script>
+  </body>
+</html>

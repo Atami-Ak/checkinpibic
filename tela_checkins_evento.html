@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check-ins do Evento</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 800px;
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .checkin-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .checkin-item {
+        background: #f9f9f9;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+      }
+
+      .checkin-item:hover {
+        transform: translateY(-5px);
+      }
+
+      .checkin-item .name {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .checkin-item span {
+        display: block;
+        font-size: 0.9em;
+        color: #555;
+      }
+
+      #noCheckinsMessage {
+        text-align: center;
+        color: #666;
+        font-size: 1em;
+        margin-top: 20px;
+      }
+
+      .btn-back {
+        display: block;
+        margin: 20px auto 0;
+        padding: 10px 20px;
+        background: #dc3545;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .btn-back:hover {
+        background: #c82333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Check-ins do Evento</h1>
+      <div id="checkinList" class="checkin-list"></div>
+      <p id="noCheckinsMessage" style="display: none">
+        Nenhum check-in encontrado para este evento.
+      </p>
+      <button
+        class="btn-back"
+        onclick="window.location.href='telaintermediaria.html'"
+      >
+        Voltar
+      </button>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+      async function fetchFirebaseConfig() {
+        const response = await fetch("firebase-config.json");
+        return response.json();
+      }
+
+      (async () => {
+        const firebaseConfig = await fetchFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Obtém o ID do evento da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get("eventId");
+
+        if (!eventId) {
+          alert("ID do evento não fornecido. Redirecionando...");
+          window.location.href = "telaintermediaria.html";
+          return;
+        }
+
+        const checkinList = document.getElementById("checkinList");
+        const noCheckinsMessage = document.getElementById("noCheckinsMessage");
+
+        async function loadCheckins() {
+          try {
+            const q = query(
+              collection(db, "checkins"),
+              where("eventId", "==", eventId)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+              noCheckinsMessage.style.display = "block";
+              return;
+            }
+
+            noCheckinsMessage.style.display = "none";
+
+            querySnapshot.forEach((doc) => {
+              const checkinData = doc.data();
+              const checkinItem = document.createElement("div");
+              checkinItem.className = "checkin-item";
+
+              checkinItem.innerHTML = `
+                <div class="name">${checkinData.nomeCompleto}</div>
+                <span><strong>CPF:</strong> ${checkinData.cpf}</span>
+                <span><strong>Telefone:</strong> ${checkinData.telefone}</span>
+                <span><strong>Email:</strong> ${checkinData.email}</span>
+                <span><strong>Data do Check-in:</strong> ${new Date(
+                  checkinData.checkInTime?.seconds * 1000
+                ).toLocaleString()}</span>
+              `;
+
+              checkinList.appendChild(checkinItem);
+            });
+          } catch (error) {
+            console.error("Erro ao carregar os check-ins:", error);
+            alert("Erro ao carregar os check-ins. Tente novamente mais tarde.");
+          }
+        }
+
+        loadCheckins();
+      })();
+    </script>
+  </body>
+</html>
