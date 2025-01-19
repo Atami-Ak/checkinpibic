@@ -29,6 +29,12 @@
       h1 {
         text-align: center;
         color: #333;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        text-align: center;
+        color: #555;
         margin-bottom: 20px;
       }
 
@@ -110,6 +116,7 @@
     <div class="container">
       <button class="btn-download" onclick="downloadPDF()">Baixar PDF</button>
       <h1>Check-ins do Evento</h1>
+      <h2 id="eventName">Carregando nome do evento...</h2>
       <div id="checkinList" class="checkin-list"></div>
       <p id="noCheckinsMessage" style="display: none">
         Nenhum check-in encontrado para este evento.
@@ -130,6 +137,8 @@
         query,
         where,
         getDocs,
+        doc,
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
       async function fetchFirebaseConfig() {
@@ -147,14 +156,17 @@
 
         if (!eventId) {
           alert("ID do evento não fornecido. Redirecionando...");
-          window.location.href = "telaintermediaria.html";
+          window.location.href = "telaintermediaria1.html";
           return;
         }
 
         const checkinList = document.getElementById("checkinList");
         const noCheckinsMessage = document.getElementById("noCheckinsMessage");
+        const eventNameElement = document.getElementById("eventName");
         const checkins = [];
+        let nomeDoEvento = "";
 
+        // Função para carregar os check-ins
         async function loadCheckins() {
           try {
             const q = query(
@@ -190,6 +202,9 @@
                 horario: new Date(
                   checkinData.checkInTime?.seconds * 1000
                 ).toLocaleString(),
+                cpf: checkinData.cpf,
+                telefone: checkinData.telefone,
+                email: checkinData.email,
               });
 
               checkinList.appendChild(checkinItem);
@@ -200,8 +215,27 @@
           }
         }
 
-        loadCheckins();
+        // Função para carregar o nome do evento
+        async function loadEventName() {
+          try {
+            const eventDoc = await getDoc(doc(db, "eventos", eventId));
+            if (eventDoc.exists()) {
+              nomeDoEvento = eventDoc.data().nome;
+              eventNameElement.textContent = nomeDoEvento; // Exibe o nome na tela
+            } else {
+              nomeDoEvento = "Evento não encontrado";
+              eventNameElement.textContent = nomeDoEvento;
+            }
+          } catch (error) {
+            console.error("Erro ao carregar o nome do evento:", error);
+            eventNameElement.textContent = "Erro ao carregar nome do evento.";
+          }
+        }
 
+        await loadEventName();
+        await loadCheckins();
+
+        // Gerar o PDF
         window.downloadPDF = function () {
           if (checkins.length === 0) {
             alert("Nenhum check-in disponível para gerar o PDF.");
@@ -214,18 +248,38 @@
           doc.setFontSize(18);
           doc.text("Informações do Evento", 14, 20);
           doc.setFontSize(12);
-          doc.text(`Evento ID: ${eventId}`, 14, 30);
-          doc.text("Lista de Participantes:", 14, 40);
+
+          // Nome do Evento
+          doc.text(`Evento: ${nomeDoEvento}`, 14, 30);
+
+          // ID do Evento
+          doc.text(`Evento ID: ${eventId}`, 14, 40);
+
+          // Lista de Participantes
+          doc.text("Lista de Participantes:", 14, 50);
+
+          let yPosition = 60;
 
           checkins.forEach((item, index) => {
-            doc.text(
-              `${index + 1}. ${item.nome} - Horário: ${item.horario}`,
-              14,
-              50 + index * 10
-            );
+            doc.text(`${index + 1}. Nome: ${item.nome}`, 14, yPosition);
+            doc.text(`   Horário: ${item.horario}`, 14, yPosition + 6);
+            doc.text(`   CPF: ${item.cpf}`, 14, yPosition + 12);
+            doc.text(`   Telefone: ${item.telefone}`, 14, yPosition + 18);
+            doc.text(`   E-mail: ${item.email}`, 14, yPosition + 24);
+
+            yPosition += 36;
+
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
           });
 
-          doc.save("checkins_evento.pdf");
+          const nomeArquivo = `${nomeDoEvento.replace(
+            /\s+/g,
+            "_"
+          )}-check-in.pdf`;
+          doc.save(nomeArquivo);
         };
       })();
     </script>

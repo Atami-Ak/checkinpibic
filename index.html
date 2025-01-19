@@ -131,6 +131,19 @@
       .btn.loading::after {
         content: " Aguarde...";
       }
+
+      .forgot-password-link {
+        display: block;
+        text-align: right;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .forgot-password-link:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -147,12 +160,8 @@
       <div class="login-form">
         <h1>Login</h1>
         <div class="input-group">
-          <label for="user">CPF, CNPJ ou E-mail</label>
-          <input
-            type="text"
-            id="user"
-            placeholder="Digite seu CPF, CNPJ ou E-mail"
-          />
+          <label for="user">E-mail</label>
+          <input type="text" id="user" placeholder="E-mail" />
           <div id="user-error" class="form-error"></div>
         </div>
         <div class="input-group">
@@ -160,6 +169,9 @@
           <input type="password" id="password" placeholder="Digite sua senha" />
           <div id="password-error" class="form-error"></div>
         </div>
+        <a href="recuperar_senha.html" class="forgot-password-link"
+          >Esqueceu sua senha?</a
+        >
         <button class="btn" onclick="validateLogin()">Entrar</button>
       </div>
 
