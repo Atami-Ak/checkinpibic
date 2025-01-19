@@ -133,36 +133,13 @@
           window.location.href = "index.html";
         }
 
-        function formatInput(input, pattern) {
-          let i = 0;
-          const onlyNumbers = input.replace(/\D/g, "");
-          const formatted = pattern.replace(/#/g, () => onlyNumbers[i++] || "");
-          return formatted;
-        }
-
-        function handleInput(event, pattern) {
-          const input = event.target;
-          const cursorPosition = input.selectionStart;
-          const oldValue = input.value;
-          const onlyNumbers = oldValue.replace(/\D/g, "");
-
-          if (event.inputType === "deleteContentBackward") {
-            input.value = formatInput(onlyNumbers.slice(0, -1), pattern);
-          } else {
-            input.value = formatInput(onlyNumbers, pattern);
-          }
-
-          const newCursorPosition =
-            cursorPosition - (oldValue.length - input.value.length);
-          input.setSelectionRange(newCursorPosition, newCursorPosition);
-        }
-
         document.getElementById("cpf").addEventListener("input", (e) => {
-          handleInput(e, "###.###.###-##");
-        });
-
-        document.getElementById("telefone").addEventListener("input", (e) => {
-          handleInput(e, "(##) #####-####");
+          const input = e.target;
+          input.value = input.value
+            .replace(/\D/g, "")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
         });
 
         document
@@ -189,6 +166,7 @@
             }
 
             try {
+              // Verifica se o CPF já está registrado no Firestore
               const checkQuery = query(
                 collection(db, "checkins"),
                 where("eventId", "==", eventId),
@@ -196,11 +174,13 @@
               );
 
               const checkSnapshot = await getDocs(checkQuery);
-              if (!checkSnapshot.empty) {
+
+              if (checkSnapshot.size > 0) {
                 alert("CPF já registrado para este evento.");
                 return;
               }
 
+              // Se não estiver registrado, realiza o check-in
               await addDoc(collection(db, "checkins"), {
                 eventId: eventId,
                 nomeCompleto: nomeCompleto,
