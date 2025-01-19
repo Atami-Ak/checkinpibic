@@ -23,6 +23,7 @@
         width: 90%;
         max-width: 800px;
         padding: 20px;
+        position: relative;
       }
 
       h1 {
@@ -86,10 +87,28 @@
       .btn-back:hover {
         background: #c82333;
       }
+
+      .btn-download {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 10px 15px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .btn-download:hover {
+        background: #0056b3;
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <button class="btn-download" onclick="downloadPDF()">Baixar PDF</button>
       <h1>Check-ins do Evento</h1>
       <div id="checkinList" class="checkin-list"></div>
       <p id="noCheckinsMessage" style="display: none">
@@ -123,7 +142,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Obtém o ID do evento da URL
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get("eventId");
 
@@ -135,6 +153,7 @@
 
         const checkinList = document.getElementById("checkinList");
         const noCheckinsMessage = document.getElementById("noCheckinsMessage");
+        const checkins = [];
 
         async function loadCheckins() {
           try {
@@ -157,14 +176,21 @@
               checkinItem.className = "checkin-item";
 
               checkinItem.innerHTML = `
-                <div class="name">${checkinData.nomeCompleto}</div>
-                <span><strong>CPF:</strong> ${checkinData.cpf}</span>
-                <span><strong>Telefone:</strong> ${checkinData.telefone}</span>
-                <span><strong>Email:</strong> ${checkinData.email}</span>
-                <span><strong>Data do Check-in:</strong> ${new Date(
+              <div class="name">${checkinData.nomeCompleto}</div>
+              <span><strong>CPF:</strong> ${checkinData.cpf}</span>
+              <span><strong>Telefone:</strong> ${checkinData.telefone}</span>
+              <span><strong>Email:</strong> ${checkinData.email}</span>
+              <span><strong>Data do Check-in:</strong> ${new Date(
+                checkinData.checkInTime?.seconds * 1000
+              ).toLocaleString()}</span>
+            `;
+
+              checkins.push({
+                nome: checkinData.nomeCompleto,
+                horario: new Date(
                   checkinData.checkInTime?.seconds * 1000
-                ).toLocaleString()}</span>
-              `;
+                ).toLocaleString(),
+              });
 
               checkinList.appendChild(checkinItem);
             });
@@ -175,7 +201,34 @@
         }
 
         loadCheckins();
+
+        window.downloadPDF = function () {
+          if (checkins.length === 0) {
+            alert("Nenhum check-in disponível para gerar o PDF.");
+            return;
+          }
+
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+
+          doc.setFontSize(18);
+          doc.text("Informações do Evento", 14, 20);
+          doc.setFontSize(12);
+          doc.text(`Evento ID: ${eventId}`, 14, 30);
+          doc.text("Lista de Participantes:", 14, 40);
+
+          checkins.forEach((item, index) => {
+            doc.text(
+              `${index + 1}. ${item.nome} - Horário: ${item.horario}`,
+              14,
+              50 + index * 10
+            );
+          });
+
+          doc.save("checkins_evento.pdf");
+        };
       })();
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   </body>
 </html>

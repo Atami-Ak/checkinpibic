@@ -121,6 +121,16 @@
       .error {
         color: red;
       }
+
+      /* Estado de carregamento no botão */
+      .btn.loading {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .btn.loading::after {
+        content: " Aguarde...";
+      }
     </style>
   </head>
   <body>
@@ -158,6 +168,7 @@
         <button id="register-btn">Registrar-se</button>
       </div>
     </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
       import {
@@ -181,6 +192,10 @@
           const db = getFirestore(app);
 
           async function validateLogin() {
+            const loginButton = document.querySelector(".btn");
+            loginButton.classList.add("loading");
+            loginButton.disabled = true;
+
             const user = document.getElementById("user").value.trim();
             const password = document.getElementById("password").value;
 
@@ -202,24 +217,42 @@
               hasError = true;
             }
 
-            if (hasError) return;
+            if (hasError) {
+              loginButton.classList.remove("loading");
+              loginButton.disabled = false;
+              return;
+            }
 
             try {
               let email = user;
 
               // Verificar se o usuário forneceu CPF ou CNPJ
               if (!user.includes("@")) {
-                const querySnapshot = await getDocs(
-                  query(
-                    collection(db, "users"),
-                    where("cpf", "==", user),
-                    where("cnpj", "==", user)
-                  )
+                if (!isValidCPF(user) && !isValidCNPJ(user)) {
+                  document.getElementById("user-error").innerText =
+                    "CPF ou CNPJ inválido. Verifique o formato.";
+                  loginButton.classList.remove("loading");
+                  loginButton.disabled = false;
+                  return;
+                }
+
+                // Determinar se o campo é CPF ou CNPJ baseado no tamanho
+                let field = "cpf"; // Por padrão, assumimos que é um CPF
+                if (user.length > 11) field = "cnpj"; // Alteramos para CNPJ se o tamanho for maior
+
+                const userQuery = query(
+                  collection(db, "users"),
+                  where(field, "==", user)
                 );
 
+                const querySnapshot = await getDocs(userQuery);
+
                 if (querySnapshot.empty) {
-                  document.getElementById("user-error").innerText =
-                    "CPF ou CNPJ não encontrado. Verifique as informações.";
+                  document.getElementById(
+                    "user-error"
+                  ).innerText = `${field.toUpperCase()} não encontrado. Verifique as informações.`;
+                  loginButton.classList.remove("loading");
+                  loginButton.disabled = false;
                   return;
                 }
 
@@ -237,9 +270,10 @@
                 "Login realizado com sucesso!";
               document.getElementById("system-message").style.color = "green";
 
+              // Redirecionar após o login
               setTimeout(() => {
                 window.location.href = "telaintermediaria.html";
-              }, 2000);
+              }, 2000); // Espera 2 segundos antes de redirecionar
             } catch (error) {
               if (error.code === "auth/user-not-found") {
                 document.getElementById("user-error").innerText =
@@ -252,7 +286,17 @@
                   "Erro ao fazer login. Tente novamente mais tarde.";
                 document.getElementById("system-message").style.color = "red";
               }
+              loginButton.classList.remove("loading");
+              loginButton.disabled = false;
             }
+          }
+
+          function isValidCPF(cpf) {
+            return /^\d{11}$/.test(cpf); // Verifica se tem 11 dígitos numéricos
+          }
+
+          function isValidCNPJ(cnpj) {
+            return /^\d{14}$/.test(cnpj); // Verifica se tem 14 dígitos numéricos
           }
 
           document
@@ -265,6 +309,9 @@
         })
         .catch((error) => {
           console.error("Erro ao carregar configurações do Firebase:", error);
+          document.getElementById("system-message").innerText =
+            "Erro ao carregar configurações do sistema. Tente novamente mais tarde.";
+          document.getElementById("system-message").style.color = "red";
         });
     </script>
   </body>

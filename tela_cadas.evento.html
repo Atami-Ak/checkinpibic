@@ -114,7 +114,10 @@
         addDoc,
         serverTimestamp,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
       async function fetchFirebaseConfig() {
         const response = await fetch("firebase-config.json");

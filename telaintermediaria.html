@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <style>
+      /* Estilo geral */
       body {
         font-family: "Roboto", sans-serif;
         background: linear-gradient(120deg, #84fab0, #8fd3f4);
@@ -29,7 +30,6 @@
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         width: 100%;
         max-width: 800px;
-        position: relative;
       }
 
       h1 {
@@ -80,22 +80,6 @@
         margin: 5px 0;
       }
 
-      .details button {
-        background: #007bff;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        margin-top: 10px;
-        display: none;
-      }
-
-      .details button:hover {
-        background: #0056b3;
-      }
-
       .btn-checkin {
         position: absolute;
         top: 15px;
@@ -112,6 +96,40 @@
 
       .btn-checkin:hover {
         background: #117a8b;
+      }
+
+      .btn-share {
+        background: #ffc107;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+        display: none;
+        transition: background 0.3s ease;
+      }
+
+      .btn-share:hover {
+        background: #e0a800;
+      }
+
+      .btn-delete {
+        background: #dc3545;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+        display: none;
+        transition: background 0.3s ease;
+      }
+
+      .btn-delete:hover {
+        background: #c82333;
       }
 
       .buttons {
@@ -240,19 +258,17 @@
         query,
         where,
         getDocs,
+        deleteDoc,
+        doc,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
       import {
         getAuth,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
-      async function fetchFirebaseConfig() {
-        const response = await fetch("firebase-config.json");
-        return response.json();
-      }
-
       (async () => {
-        const firebaseConfig = await fetchFirebaseConfig();
+        const response = await fetch("firebase-config.json");
+        const firebaseConfig = await response.json();
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -281,27 +297,27 @@
                 eventItem.className = "event-item";
 
                 const detailsId = `details-${doc.id}`;
-                const buttonId = `share-${doc.id}`;
+                const shareButtonId = `share-${doc.id}`;
+                const deleteButtonId = `delete-${doc.id}`;
 
                 eventItem.innerHTML = `
                   <span>${eventData.nome}</span>
                   <button class="btn-checkin" onclick="redirectToCheckins('${
                     doc.id
                   }')">Ver Check-ins</button>
-                  <button onclick="toggleDetails('${detailsId}', '${buttonId}')">Ver Detalhes</button>
+                  <button onclick="toggleDetails('${detailsId}', '${shareButtonId}', '${deleteButtonId}')">Ver Detalhes</button>
                   <div id="${detailsId}" class="details">
                     <p><strong>Descrição:</strong> ${eventData.descricao}</p>
                     <p><strong>Data e Hora:</strong> ${new Date(
                       eventData.dataHora
                     ).toLocaleString()}</p>
-                    <p><strong>Endereço:</strong> ${eventData.endereco}, ${
-                  eventData.numero
-                }, ${eventData.bairro}, ${eventData.cidade} - ${
-                  eventData.estado
-                }</p>
-                    <button id="${buttonId}" style="display:none;" onclick="redirectToLogin('${
+                    <p><strong>Endereço:</strong> ${eventData.endereco}</p>
+                    <button id="${shareButtonId}" class="btn-share" onclick="redirectToQRCode('${
                   doc.id
                 }')">Compartilhar</button>
+                    <button id="${deleteButtonId}" class="btn-delete" onclick="deleteEvent('${
+                  doc.id
+                }')">Excluir Evento</button>
                   </div>
                 `;
 
@@ -313,24 +329,35 @@
           })();
         }
 
-        function toggleDetails(detailsId, buttonId) {
+        function toggleDetails(detailsId, shareButtonId, deleteButtonId) {
           const details = document.getElementById(detailsId);
-          const shareButton = document.getElementById(buttonId);
+          const shareButton = document.getElementById(shareButtonId);
+          const deleteButton = document.getElementById(deleteButtonId);
           const isVisible = details.style.display === "block";
           details.style.display = isVisible ? "none" : "block";
           shareButton.style.display = isVisible ? "none" : "block";
+          deleteButton.style.display = isVisible ? "none" : "block";
+        }
+
+        async function deleteEvent(eventId) {
+          if (confirm("Você tem certeza que deseja excluir este evento?")) {
+            try {
+              await deleteDoc(doc(db, "eventos", eventId));
+              alert("Evento excluído com sucesso!");
+              location.reload();
+            } catch (error) {
+              console.error("Erro ao excluir evento:", error);
+              alert("Erro ao excluir o evento. Tente novamente.");
+            }
+          }
         }
 
         function redirectToCheckins(eventId) {
           window.location.href = `tela_checkins_evento.html?eventId=${eventId}`;
         }
 
-        function redirectToLogin(eventId) {
-          console.log(
-            "Redirecionando para tela de login com eventId:",
-            eventId
-          );
-          window.location.href = `tela_login_evento.html?eventId=${eventId}`;
+        function redirectToQRCode(eventId) {
+          window.location.href = `tela_gerar_qrcode.html?eventId=${eventId}`;
         }
 
         async function showUserInfo(user) {
@@ -339,35 +366,37 @@
           const userName = document.getElementById("userName");
           const userEmail = document.getElementById("userEmail");
 
-          try {
-            const q = query(
-              collection(db, "responsaveis"),
-              where("uid", "==", user.uid)
-            );
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-              const userData = querySnapshot.docs[0].data();
-              userName.textContent = `Nome: ${
-                userData.nome || "Não disponível"
-              }`;
-              userEmail.textContent = `Email: ${
-                userData.email || "Não disponível"
-              }`;
-            } else {
-              userName.textContent = "Nome: Não encontrado";
-              userEmail.textContent = "Email: Não encontrado";
-            }
-          } catch (error) {
-            console.error("Erro ao buscar informações do usuário:", error);
-            userName.textContent = "Nome: Erro ao buscar";
-            userEmail.textContent = "Email: Erro ao buscar";
-          }
-
           userInfoIcon.addEventListener("click", () => {
             const isPopupVisible = userInfoPopup.style.display === "block";
             userInfoPopup.style.display = isPopupVisible ? "none" : "block";
           });
+
+          if (user) {
+            try {
+              const q = query(
+                collection(db, "responsaveis"),
+                where("uid", "==", user.uid)
+              );
+              const querySnapshot = await getDocs(q);
+
+              if (!querySnapshot.empty) {
+                const userData = querySnapshot.docs[0].data();
+                userName.textContent = `Nome: ${
+                  userData.nome || "Não disponível"
+                }`;
+                userEmail.textContent = `Email: ${
+                  userData.email || "Não disponível"
+                }`;
+              } else {
+                userName.textContent = "Nome: Não encontrado";
+                userEmail.textContent = "Email: Não encontrado";
+              }
+            } catch (error) {
+              console.error("Erro ao buscar informações do usuário:", error);
+              userName.textContent = "Nome: Erro ao buscar";
+              userEmail.textContent = "Email: Erro ao buscar";
+            }
+          }
         }
 
         onAuthStateChanged(auth, (user) => {
@@ -382,7 +411,8 @@
 
         window.toggleDetails = toggleDetails;
         window.redirectToCheckins = redirectToCheckins;
-        window.redirectToLogin = redirectToLogin;
+        window.redirectToQRCode = redirectToQRCode;
+        window.deleteEvent = deleteEvent;
       })();
     </script>
   </body>
