@@ -64,6 +64,17 @@
       .error {
         color: red;
       }
+      .back-to-login {
+        display: block;
+        margin-top: 20px;
+        text-align: center;
+        font-size: 14px;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .back-to-login:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -74,6 +85,7 @@
         <input type="email" id="email" placeholder="Digite seu e-mail" />
       </div>
       <button class="btn" id="recover-password-btn">Recuperar Senha</button>
+      <a href="index.html" class="back-to-login">Voltar para o login</a>
       <div id="message" class="message"></div>
     </div>
     <script type="module">
