@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tela de Login do Evento</title>
     <style>
+      /* Estilos mantidos */
       * {
         box-sizing: border-box;
         margin: 0;
@@ -32,16 +33,6 @@
       .event-info {
         text-align: center;
         margin-bottom: 20px;
-      }
-
-      .event-info h1 {
-        font-size: 1.5em;
-        color: #333;
-      }
-
-      .event-info p {
-        font-size: 0.9em;
-        color: #666;
       }
 
       form {
@@ -77,17 +68,6 @@
       form button:hover {
         background-color: #0056b3;
       }
-
-      @media (max-width: 600px) {
-        .container {
-          width: 100%;
-          padding: 15px;
-        }
-        form input {
-          font-size: 1em;
-          padding: 10px;
-        }
-      }
     </style>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -98,9 +78,11 @@
         serverTimestamp,
         doc,
         getDoc,
+        query,
+        where,
+        getDocs,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-      // Configuração do Firebase
       async function fetchFirebaseConfig() {
         const response = await fetch("firebase-config.json");
         return response.json();
@@ -111,7 +93,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Obtém o ID do evento da URL
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get("eventId");
 
@@ -123,7 +104,6 @@
           return;
         }
 
-        // Busca os detalhes do evento no Firestore
         try {
           const eventDoc = await getDoc(doc(db, "eventos", eventId));
           if (!eventDoc.exists()) {
@@ -133,8 +113,6 @@
           }
 
           const eventData = eventDoc.data();
-
-          // Atualiza as informações do evento na página
           document.querySelector(".event-info h1").innerText = eventData.nome;
           document.querySelector(
             ".event-info p:nth-child(2)"
@@ -155,6 +133,38 @@
           window.location.href = "index.html";
         }
 
+        function formatInput(input, pattern) {
+          let i = 0;
+          const onlyNumbers = input.replace(/\D/g, "");
+          const formatted = pattern.replace(/#/g, () => onlyNumbers[i++] || "");
+          return formatted;
+        }
+
+        function handleInput(event, pattern) {
+          const input = event.target;
+          const cursorPosition = input.selectionStart;
+          const oldValue = input.value;
+          const onlyNumbers = oldValue.replace(/\D/g, "");
+
+          if (event.inputType === "deleteContentBackward") {
+            input.value = formatInput(onlyNumbers.slice(0, -1), pattern);
+          } else {
+            input.value = formatInput(onlyNumbers, pattern);
+          }
+
+          const newCursorPosition =
+            cursorPosition - (oldValue.length - input.value.length);
+          input.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+
+        document.getElementById("cpf").addEventListener("input", (e) => {
+          handleInput(e, "###.###.###-##");
+        });
+
+        document.getElementById("telefone").addEventListener("input", (e) => {
+          handleInput(e, "(##) #####-####");
+        });
+
         document
           .getElementById("login-form")
           .addEventListener("submit", async function (event) {
@@ -172,7 +182,25 @@
               return;
             }
 
+            const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+            if (!emailPattern.test(email)) {
+              alert("Por favor, insira um email válido.");
+              return;
+            }
+
             try {
+              const checkQuery = query(
+                collection(db, "checkins"),
+                where("eventId", "==", eventId),
+                where("cpf", "==", cpf)
+              );
+
+              const checkSnapshot = await getDocs(checkQuery);
+              if (!checkSnapshot.empty) {
+                alert("CPF já registrado para este evento.");
+                return;
+              }
+
               await addDoc(collection(db, "checkins"), {
                 eventId: eventId,
                 nomeCompleto: nomeCompleto,
@@ -194,15 +222,12 @@
   </head>
   <body>
     <div class="container">
-      <!-- Informações do evento -->
       <div class="event-info">
         <h1>Carregando...</h1>
         <p>Carregando...</p>
         <p>Carregando...</p>
         <p>Carregando...</p>
       </div>
-
-      <!-- Formulário de login -->
       <form id="login-form">
         <label for="nome-completo">Nome Completo:</label>
         <input type="text" id="nome-completo" name="nome-completo" required />
@@ -213,8 +238,6 @@
           id="cpf"
           name="cpf"
           required
-          pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
-          title="Formato: 000.000.000-00"
           placeholder="000.000.000-00"
         />
 
@@ -224,8 +247,6 @@
           id="telefone"
           name="telefone"
           required
-          pattern="\(\d{2}\) \d{4,5}-\d{4}"
-          title="Formato: (00) 00000-0000"
           placeholder="(00) 00000-0000"
         />
 

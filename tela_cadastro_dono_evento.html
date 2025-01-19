@@ -30,9 +30,6 @@
       }
 
       .back-button {
-        position: absolute;
-        top: 20px;
-        left: 20px;
         background-color: #007bff;
         color: white;
         border: none;
@@ -40,6 +37,7 @@
         font-size: 14px;
         padding: 8px 12px;
         cursor: pointer;
+        margin-top: 20px;
       }
 
       .back-button:hover {
@@ -115,11 +113,41 @@
         return response.json();
       }
 
+      function applyMask(input, maskFunction) {
+        input.addEventListener("input", (event) => {
+          event.target.value = maskFunction(event.target.value);
+        });
+      }
+
+      function cpfCnpjMask(value) {
+        value = value.replace(/\D/g, "");
+        if (value.length <= 11) {
+          return value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        } else {
+          return value.replace(
+            /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+            "$1.$2.$3/$4-$5"
+          );
+        }
+      }
+
+      function phoneMask(value) {
+        value = value.replace(/\D/g, "");
+        if (value.length <= 10) {
+          return value.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+        } else {
+          return value.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+        }
+      }
+
       (async () => {
         const firebaseConfig = await fetchFirebaseConfig();
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        applyMask(document.getElementById("cpf_cnpj"), cpfCnpjMask);
+        applyMask(document.getElementById("telefone"), phoneMask);
 
         document
           .getElementById("cadastroForm")
@@ -128,8 +156,14 @@
 
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
-            const cpfCnpj = document.getElementById("cpf_cnpj").value.trim();
-            const telefone = document.getElementById("telefone").value.trim();
+            const cpfCnpj = document
+              .getElementById("cpf_cnpj")
+              .value.replace(/\D/g, "")
+              .trim();
+            const telefone = document
+              .getElementById("telefone")
+              .value.replace(/\D/g, "")
+              .trim();
             const senha = document.getElementById("senha").value;
 
             if (!nome || !email || !cpfCnpj || !telefone || !senha) {
@@ -160,6 +194,20 @@
                 return;
               }
 
+              const userQueryByPhone = query(
+                collection(db, "responsaveis"),
+                where("telefone", "==", telefone)
+              );
+              const phoneSnapshot = await getDocs(userQueryByPhone);
+
+              if (!phoneSnapshot.empty) {
+                const phoneData = phoneSnapshot.docs[0].data();
+                if (phoneData.telefone === telefone) {
+                  alert("Já existe um cadastro com este número de telefone.");
+                  return;
+                }
+              }
+
               const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 email,
@@ -187,9 +235,6 @@
     </script>
   </head>
   <body>
-    <button class="back-button" onclick="window.location.href='index.html'">
-      Voltar para Login
-    </button>
     <div class="container">
       <h1>Preencha os Dados do Responsável pelo Evento</h1>
       <form id="cadastroForm">
@@ -222,8 +267,6 @@
             id="cpf_cnpj"
             name="cpf_cnpj"
             placeholder="Digite CPF ou CNPJ"
-            pattern="\d{11}|\d{14}"
-            title="Digite 11 números para CPF ou 14 para CNPJ"
             required
           />
         </div>
@@ -235,8 +278,6 @@
             id="telefone"
             name="telefone"
             placeholder="Digite o telefone com DDD"
-            pattern="\d{10,11}"
-            title="Digite um telefone com 10 ou 11 números"
             required
           />
         </div>
@@ -257,6 +298,9 @@
         <button type="submit">Cadastrar</button>
         <button type="reset" id="limpar">Limpar formulário</button>
       </form>
+      <button class="back-button" onclick="window.location.href='index.html'">
+        Voltar para Login
+      </button>
     </div>
   </body>
 </html>
