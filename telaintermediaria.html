@@ -13,7 +13,6 @@
       rel="stylesheet"
     />
     <style>
-      /* Estilo geral */
       body {
         font-family: "Roboto", sans-serif;
         background: linear-gradient(120deg, #84fab0, #8fd3f4);
@@ -65,12 +64,6 @@
         transform: translateY(-5px);
       }
 
-      .event-item span {
-        font-weight: 500;
-        color: #555;
-        margin-bottom: 10px;
-      }
-
       .details {
         display: none;
         margin-top: 10px;
@@ -84,81 +77,84 @@
         margin: 5px 0;
       }
 
-      .btn-checkin {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: #17a2b8;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        padding: 8px 12px;
+      button {
+        font-family: "Roboto", sans-serif;
         font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
         cursor: pointer;
-        transition: background 0.3s ease;
+        padding: 10px 15px;
+        margin-top: 10px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+      }
+
+      .btn-checkin {
+        background-color: #17a2b8;
+        color: #fff;
       }
 
       .btn-checkin:hover {
-        background: #117a8b;
+        background-color: #117a8b;
+      }
+
+      .btn-details {
+        background-color: #6c757d;
+        color: #fff;
+      }
+
+      .btn-details:hover {
+        background-color: #5a6268;
       }
 
       .btn-share {
-        background: #ffc107;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        margin-top: 10px;
-        display: none;
-        transition: background 0.3s ease;
+        background-color: #ffc107;
+        color: #333;
       }
 
       .btn-share:hover {
-        background: #e0a800;
+        background-color: #e0a800;
       }
 
       .btn-delete {
-        background: #dc3545;
+        background-color: #dc3545;
         color: #fff;
-        border: none;
-        border-radius: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        margin-top: 10px;
-        display: none;
-        transition: background 0.3s ease;
       }
 
       .btn-delete:hover {
-        background: #c82333;
+        background-color: #c82333;
       }
 
-      .buttons {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
-        gap: 15px;
-      }
-
-      .buttons button {
-        padding: 10px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-      }
-
-      .btn-continue {
-        background: #28a745;
+      .btn-edit {
+        background-color: #007bff;
         color: #fff;
       }
 
+      .btn-edit:hover {
+        background-color: #0056b3;
+      }
+
+      .btn-continue {
+        background-color: #28a745;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 12px 20px;
+        text-align: center;
+        width: 100%;
+        margin-top: 20px;
+        border: none;
+        border-radius: 8px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
       .btn-continue:hover {
-        background: #218838;
+        background-color: #218838;
+        transform: translateY(-3px);
       }
 
       .user-info-icon {
@@ -178,25 +174,18 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
 
-      .user-info-icon span {
-        font-size: 24px;
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
       .user-info-popup {
         position: absolute;
         top: 70px;
         left: 20px;
-        background-color: #fff;
+        background: #fff;
         border: 1px solid #ddd;
         border-radius: 8px;
-        padding: 10px;
+        padding: 15px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         display: none;
         z-index: 1000;
+        max-width: 300px;
       }
 
       .user-info-popup p {
@@ -205,31 +194,22 @@
         color: #333;
       }
 
-      .popup-back-button {
+      .user-info-popup button {
+        width: 100%;
         margin-top: 10px;
-        display: block;
-        background-color: #dc3545;
+        background: #dc3545;
         color: white;
-        border: none;
-        border-radius: 4px;
         font-size: 14px;
         padding: 8px 12px;
-        text-align: center;
-        cursor: pointer;
-        width: 100%;
-      }
-
-      .popup-back-button:hover {
-        background-color: #c82333;
       }
 
       @media (max-width: 600px) {
-        .buttons {
-          flex-direction: column;
-          gap: 10px;
+        .user-info-popup {
+          max-width: 90%;
+          left: 5%;
         }
 
-        .buttons button {
+        button {
           width: 100%;
         }
       }
@@ -239,29 +219,26 @@
     <div class="user-info-icon" id="userInfoIcon">
       <span class="material-icons">person</span>
     </div>
+
     <div class="user-info-popup" id="userInfoPopup">
-      <p id="userName">Nome:</p>
-      <p id="userEmail">Email:</p>
-      <button
-        class="popup-back-button"
-        onclick="window.location.href='index.html'"
-      >
+      <p id="userName">Nome: Carregando...</p>
+      <p id="userEmail">Email: Carregando...</p>
+      <button onclick="window.location.href='index.html'">
         Voltar ao Login
       </button>
     </div>
+
     <div class="container">
       <h1>Seus Eventos</h1>
       <div class="event-list" id="eventList">
         <p id="noEventsMessage">Nenhum evento criado ainda.</p>
       </div>
-      <div class="buttons">
-        <button
-          class="btn-continue"
-          onclick="window.location.href='tela_cadas.evento.html'"
-        >
-          Cadastrar Novo Evento
-        </button>
-      </div>
+      <button
+        class="btn-continue"
+        onclick="window.location.href='tela_cadas.evento.html'"
+      >
+        Cadastrar Novo Evento
+      </button>
     </div>
 
     <script type="module">
@@ -272,8 +249,8 @@
         query,
         where,
         getDocs,
-        deleteDoc,
         doc,
+        deleteDoc,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
       import {
         getAuth,
@@ -287,70 +264,86 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        function loadEvents(userId) {
+        async function loadEvents(userId) {
           const eventList = document.getElementById("eventList");
           const noEventsMessage = document.getElementById("noEventsMessage");
 
-          (async () => {
-            try {
-              const q = query(
-                collection(db, "eventos"),
-                where("organizadorId", "==", userId)
-              );
-              const querySnapshot = await getDocs(q);
+          try {
+            const q = query(
+              collection(db, "eventos"),
+              where("organizadorId", "==", userId)
+            );
+            const querySnapshot = await getDocs(q);
 
-              if (querySnapshot.empty) {
-                noEventsMessage.style.display = "block";
-                return;
-              }
-
-              noEventsMessage.style.display = "none";
-              querySnapshot.forEach((doc) => {
-                const eventData = doc.data();
-                const eventItem = document.createElement("div");
-                eventItem.className = "event-item";
-
-                const detailsId = `details-${doc.id}`;
-                const shareButtonId = `share-${doc.id}`;
-                const deleteButtonId = `delete-${doc.id}`;
-
-                eventItem.innerHTML = `
-                  <span>${eventData.nome}</span>
-                  <button class="btn-checkin" onclick="redirectToCheckins('${
-                    doc.id
-                  }')">Ver Check-ins</button>
-                  <button onclick="toggleDetails('${detailsId}', '${shareButtonId}', '${deleteButtonId}')">Ver Detalhes</button>
-                  <div id="${detailsId}" class="details">
-                    <p><strong>Descrição:</strong> ${eventData.descricao}</p>
-                    <p><strong>Data e Hora:</strong> ${new Date(
-                      eventData.dataHora
-                    ).toLocaleString()}</p>
-                    <p><strong>Endereço:</strong> ${eventData.endereco}</p>
-                    <button id="${shareButtonId}" class="btn-share" onclick="redirectToQRCode('${
-                  doc.id
-                }')">Compartilhar</button>
-                    <button id="${deleteButtonId}" class="btn-delete" onclick="deleteEvent('${
-                  doc.id
-                }')">Excluir Evento</button>
-                  </div>
-                `;
-
-                eventList.appendChild(eventItem);
-              });
-            } catch (error) {
-              console.error("Erro ao carregar eventos:", error);
+            if (querySnapshot.empty) {
+              noEventsMessage.style.display = "block";
+              return;
             }
-          })();
+
+            noEventsMessage.style.display = "none";
+
+            querySnapshot.forEach((doc) => {
+              const eventData = doc.data();
+              const eventItem = document.createElement("div");
+              eventItem.className = "event-item";
+
+              const detailsId = `details-${doc.id}`;
+              const shareButtonId = `share-${doc.id}`;
+              const deleteButtonId = `delete-${doc.id}`;
+              const editButtonId = `edit-${doc.id}`;
+
+              eventItem.innerHTML = `
+              <span>${eventData.nome || "Evento sem nome"}</span>
+              <button class="btn-checkin" onclick="redirectToCheckins('${
+                doc.id
+              }')">Ver Check-ins</button>
+              <button class="btn-details" onclick="toggleDetails('${detailsId}')">Mostrar Detalhes</button>
+              <div id="${detailsId}" class="details">
+                <p><strong>Descrição:</strong> ${
+                  eventData.descricao || "Sem descrição"
+                }</p>
+                <p><strong>Data e Hora:</strong> ${
+                  new Date(eventData.dataHora).toLocaleString() || "Sem data"
+                }</p>
+                <p><strong>Endereço:</strong> ${
+                  eventData.endereco || "Sem endereço"
+                }, Nº ${eventData.numero || "-"}</p>
+                <p><strong>Bairro:</strong> ${
+                  eventData.bairro || "Sem bairro"
+                }</p>
+                <p><strong>Cidade:</strong> ${
+                  eventData.cidade || "Sem cidade"
+                }</p>
+                <button id="${shareButtonId}" class="btn-share" onclick="redirectToQRCode('${
+                doc.id
+              }')">Compartilhar</button>
+                <button id="${deleteButtonId}" class="btn-delete" onclick="deleteEvent('${
+                doc.id
+              }')">Excluir Evento</button>
+                <button id="${editButtonId}" class="btn-edit" onclick="editEvent('${
+                doc.id
+              }')">Editar Evento</button>
+              </div>
+            `;
+
+              eventList.appendChild(eventItem);
+            });
+          } catch (error) {
+            console.error("Erro ao carregar eventos:", error);
+            alert(
+              "Não foi possível carregar os eventos. Tente novamente mais tarde."
+            );
+          }
         }
 
-        function toggleDetails(detailsId, shareButtonId, deleteButtonId) {
+        function toggleDetails(detailsId) {
           const details = document.getElementById(detailsId);
-          const shareButton = document.getElementById(shareButtonId);
-          const deleteButton = document.getElementById(deleteButtonId);
           const isVisible = details.style.display === "block";
           details.style.display = isVisible ? "none" : "block";
-          shareButton.style.display = isVisible ? "none" : "block";
-          deleteButton.style.display = isVisible ? "none" : "block";
+        }
+
+        function redirectToCheckins(eventId) {
+          window.location.href = `tela_checkins_evento.html?eventId=${eventId}`;
         }
 
         async function deleteEvent(eventId) {
@@ -366,67 +359,80 @@
           }
         }
 
-        function redirectToCheckins(eventId) {
-          window.location.href = `tela_checkins_evento.html?eventId=${eventId}`;
+        function editEvent(eventId) {
+          window.location.href = `tela_editar_evento.html?eventId=${eventId}`;
         }
 
         function redirectToQRCode(eventId) {
           window.location.href = `tela_gerar_qrcode.html?eventId=${eventId}`;
         }
 
-        async function showUserInfo(user) {
-          const userInfoIcon = document.getElementById("userInfoIcon");
-          const userInfoPopup = document.getElementById("userInfoPopup");
-          const userName = document.getElementById("userName");
-          const userEmail = document.getElementById("userEmail");
-
-          userInfoIcon.addEventListener("click", () => {
-            const isPopupVisible = userInfoPopup.style.display === "block";
-            userInfoPopup.style.display = isPopupVisible ? "none" : "block";
-          });
-
-          if (user) {
-            try {
-              const q = query(
-                collection(db, "responsaveis"),
-                where("uid", "==", user.uid)
-              );
-              const querySnapshot = await getDocs(q);
-
-              if (!querySnapshot.empty) {
-                const userData = querySnapshot.docs[0].data();
-                userName.textContent = `Nome: ${
-                  userData.nome || "Não disponível"
-                }`;
-                userEmail.textContent = `Email: ${
-                  userData.email || "Não disponível"
-                }`;
-              } else {
-                userName.textContent = "Nome: Não encontrado";
-                userEmail.textContent = "Email: Não encontrado";
-              }
-            } catch (error) {
-              console.error("Erro ao buscar informações do usuário:", error);
-              userName.textContent = "Nome: Erro ao buscar";
-              userEmail.textContent = "Email: Erro ao buscar";
-            }
-          }
-        }
-
         onAuthStateChanged(auth, (user) => {
           if (user) {
             loadEvents(user.uid);
-            showUserInfo(user);
           } else {
             alert("Usuário não autenticado. Redirecionando para o login.");
             window.location.href = "index.html";
           }
         });
 
+        async function loadUserInfo(user) {
+          const userName = document.getElementById("userName");
+          const userEmail = document.getElementById("userEmail");
+
+          try {
+            // Consulta no Firestore para obter informações do usuário
+            const q = query(
+              collection(db, "responsaveis"),
+              where("uid", "==", user.uid)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              // Se os dados existem, exibe o nome e o email do Firestore
+              const userData = querySnapshot.docs[0].data();
+              userName.textContent = `Nome: ${
+                userData.nome || "Não informado"
+              }`;
+              userEmail.textContent = `Email: ${
+                userData.email || "Não informado"
+              }`;
+            } else {
+              // Caso o Firestore não retorne dados, usa as informações do Auth
+              userName.textContent = `Nome: Não encontrado`;
+              userEmail.textContent = `Email: ${user.email || "Não informado"}`;
+            }
+          } catch (error) {
+            // Exibe mensagens de erro caso ocorra alguma falha
+            console.error("Erro ao buscar informações do usuário:", error);
+            userName.textContent = "Erro ao carregar nome.";
+            userEmail.textContent = "Erro ao carregar email.";
+          }
+        }
+
+        // Configura o listener para exibir informações do usuário autenticado
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            loadUserInfo(user); // Chama a função para carregar as informações do usuário
+          } else {
+            alert("Usuário não autenticado. Redirecionando para o login.");
+            window.location.href = "index.html";
+          }
+        });
+
+        const userInfoIcon = document.getElementById("userInfoIcon");
+        const userInfoPopup = document.getElementById("userInfoPopup");
+
+        userInfoIcon.addEventListener("click", () => {
+          const isVisible = userInfoPopup.style.display === "block";
+          userInfoPopup.style.display = isVisible ? "none" : "block";
+        });
+
         window.toggleDetails = toggleDetails;
         window.redirectToCheckins = redirectToCheckins;
         window.redirectToQRCode = redirectToQRCode;
         window.deleteEvent = deleteEvent;
+        window.editEvent = editEvent;
       })();
     </script>
   </body>

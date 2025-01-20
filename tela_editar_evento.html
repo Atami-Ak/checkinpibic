@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Evento</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background: linear-gradient(120deg, #84fab0, #8fd3f4);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+
+      label {
+        font-size: 1rem;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      input,
+      textarea,
+      select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 1rem;
+      }
+
+      textarea {
+        resize: none;
+        height: 100px;
+      }
+
+      button {
+        padding: 10px 15px;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background: #218838;
+      }
+
+      .back-button {
+        background: #dc3545;
+        margin-top: 10px;
+      }
+
+      .back-button:hover {
+        background: #c82333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Editar Evento</h1>
+      <form id="editEventForm">
+        <label for="eventName">Nome do Evento:</label>
+        <input type="text" id="eventName" required />
+
+        <label for="eventDescription">Descrição:</label>
+        <textarea id="eventDescription" required></textarea>
+
+        <label for="eventDate">Data e Hora:</label>
+        <input type="datetime-local" id="eventDate" required />
+
+        <label for="eventAddress">Endereço:</label>
+        <input type="text" id="eventAddress" required />
+
+        <label for="eventNumber">Número:</label>
+        <input type="text" id="eventNumber" required />
+
+        <label for="eventNeighborhood">Bairro:</label>
+        <input type="text" id="eventNeighborhood" required />
+
+        <label for="eventCity">Cidade:</label>
+        <input type="text" id="eventCity" required />
+
+        <label for="eventState">Estado:</label>
+        <select id="eventState" required>
+          <option value="">Selecione um estado</option>
+          <option value="AC">Acre</option>
+          <option value="AL">Alagoas</option>
+          <option value="AP">Amapá</option>
+          <option value="AM">Amazonas</option>
+          <option value="BA">Bahia</option>
+          <option value="CE">Ceará</option>
+          <option value="DF">Distrito Federal</option>
+          <option value="ES">Espírito Santo</option>
+          <option value="GO">Goiás</option>
+          <option value="MA">Maranhão</option>
+          <option value="MT">Mato Grosso</option>
+          <option value="MS">Mato Grosso do Sul</option>
+          <option value="MG">Minas Gerais</option>
+          <option value="PA">Pará</option>
+          <option value="PB">Paraíba</option>
+          <option value="PR">Paraná</option>
+          <option value="PE">Pernambuco</option>
+          <option value="PI">Piauí</option>
+          <option value="RJ">Rio de Janeiro</option>
+          <option value="RN">Rio Grande do Norte</option>
+          <option value="RS">Rio Grande do Sul</option>
+          <option value="RO">Rondônia</option>
+          <option value="RR">Roraima</option>
+          <option value="SC">Santa Catarina</option>
+          <option value="SP">São Paulo</option>
+          <option value="SE">Sergipe</option>
+          <option value="TO">Tocantins</option>
+        </select>
+
+        <button type="button" id="saveEvent">Salvar Alterações</button>
+        <button
+          type="button"
+          class="back-button"
+          onclick="window.location.href='telaintermediaria.html'"
+        >
+          Cancelar
+        </button>
+      </form>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+      (async () => {
+        const response = await fetch("firebase-config.json");
+        const firebaseConfig = await response.json();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Obter ID do evento da URL
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get("eventId");
+
+        if (eventId) {
+          const eventRef = doc(db, "eventos", eventId);
+
+          try {
+            // Carregar dados do evento
+            const eventSnapshot = await getDoc(eventRef);
+            if (eventSnapshot.exists()) {
+              const eventData = eventSnapshot.data();
+              document.getElementById("eventName").value = eventData.nome;
+              document.getElementById("eventDescription").value =
+                eventData.descricao;
+              document.getElementById("eventDate").value = new Date(
+                eventData.dataHora
+              )
+                .toISOString()
+                .slice(0, 16);
+              document.getElementById("eventAddress").value =
+                eventData.endereco;
+              document.getElementById("eventNumber").value = eventData.numero;
+              document.getElementById("eventNeighborhood").value =
+                eventData.bairro;
+              document.getElementById("eventCity").value = eventData.cidade;
+              document.getElementById("eventState").value = eventData.estado;
+            } else {
+              alert("Evento não encontrado.");
+            }
+          } catch (error) {
+            console.error("Erro ao carregar evento:", error);
+            alert("Erro ao carregar dados do evento.");
+          }
+
+          // Salvar alterações no Firebase
+          document
+            .getElementById("saveEvent")
+            .addEventListener("click", async () => {
+              const updatedData = {
+                nome: document.getElementById("eventName").value,
+                descricao: document.getElementById("eventDescription").value,
+                dataHora: new Date(
+                  document.getElementById("eventDate").value
+                ).toISOString(),
+                endereco: document.getElementById("eventAddress").value,
+                numero: document.getElementById("eventNumber").value,
+                bairro: document.getElementById("eventNeighborhood").value,
+                cidade: document.getElementById("eventCity").value,
+                estado: document.getElementById("eventState").value,
+              };
+
+              try {
+                await updateDoc(eventRef, updatedData);
+                alert("Evento atualizado com sucesso!");
+                window.location.href = "telaintermediaria.html";
+              } catch (error) {
+                console.error("Erro ao atualizar evento:", error);
+                alert("Erro ao salvar alterações. Tente novamente.");
+              }
+            });
+        } else {
+          alert("ID do evento não encontrado.");
+        }
+      })();
+    </script>
+  </body>
+</html>
