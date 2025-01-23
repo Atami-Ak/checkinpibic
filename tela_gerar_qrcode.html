@@ -81,6 +81,19 @@
       .btn-back:hover {
         background: #218838;
       }
+
+      .version-label {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
     </style>
   </head>
   <body>
@@ -103,6 +116,9 @@
         Voltar para Lista de Eventos
       </button>
     </div>
+
+    <div class="version-label">versão 1.0-beta tester</div>
+
 
     <script>
       document.addEventListener("DOMContentLoaded", async () => {
