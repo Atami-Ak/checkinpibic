@@ -88,17 +88,17 @@
       }
 
       .version-label {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
     </style>
   </head>
   <body>
@@ -120,11 +120,17 @@
         <label for="eventNumber">Número:</label>
         <input type="text" id="eventNumber" required />
 
+        <label for="eventCEP">CEP:</label>
+        <input type="text" id="eventCEP" required />
+
         <label for="eventNeighborhood">Bairro:</label>
         <input type="text" id="eventNeighborhood" required />
 
         <label for="eventCity">Cidade:</label>
         <input type="text" id="eventCity" required />
+
+        <label for="eventLocation">Local do Evento:</label>
+        <input type="text" id="eventLocation" required />
 
         <label for="eventState">Estado:</label>
         <select id="eventState" required>
@@ -169,8 +175,7 @@
       </form>
     </div>
 
-    <div class="version-label">versão 1.0-beta tester</div>
-
+    <div class="version-label">versão 1.1-beta</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -210,10 +215,15 @@
               document.getElementById("eventAddress").value =
                 eventData.endereco;
               document.getElementById("eventNumber").value = eventData.numero;
+              document.getElementById("eventCEP").value = eventData.cep;
               document.getElementById("eventNeighborhood").value =
                 eventData.bairro;
+              document.getElementById("eventCEP").value = eventData.cep;
               document.getElementById("eventCity").value = eventData.cidade;
               document.getElementById("eventState").value = eventData.estado;
+              document.getElementById("eventLocation").value =
+                eventData.localEvento;
+              4;
             } else {
               alert("Evento não encontrado.");
             }
@@ -234,9 +244,11 @@
                 ).toISOString(),
                 endereco: document.getElementById("eventAddress").value,
                 numero: document.getElementById("eventNumber").value,
+                cep: document.getElementById("eventCEP").value,
                 bairro: document.getElementById("eventNeighborhood").value,
                 cidade: document.getElementById("eventCity").value,
                 estado: document.getElementById("eventState").value,
+                localEvento: document.getElementById("eventLocation").value,
               };
 
               try {

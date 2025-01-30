@@ -15,7 +15,7 @@
     <style>
       body {
         font-family: "Roboto", sans-serif;
-        background: linear-gradient(120deg, #84fab0, #8fd3f4);
+        background: #f2f2f2;
         margin: 0;
         padding: 0;
         color: #333;
@@ -254,7 +254,7 @@
       </button>
     </div>
 
-    <div class="version-label">versão 1.0-beta tester</div>
+    <div class="version-label">versão 1.1-beta</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -328,6 +328,10 @@
                 }</p>
                 <p><strong>Cidade:</strong> ${
                   eventData.cidade || "Sem cidade"
+                }</p>
+                <p><strong>CEP:</strong> ${eventData.cep || "Não informado"}</p>
+                <p><strong>Local do Evento:</strong> ${
+                  eventData.localEvento || "Não informado"
                 }</p>
                 <button id="${shareButtonId}" class="btn-share" onclick="redirectToQRCode('${
                 doc.id

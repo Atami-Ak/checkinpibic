@@ -94,17 +94,17 @@
       }
 
       .version-label {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
     </style>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -164,22 +164,47 @@
 
         document
           .getElementById("cadastroForm")
-          .addEventListener("submit", async (event) => {
-            event.preventDefault();
+          .addEventListener("submit", async function (event) {
+            event.preventDefault(); // Impede o envio automático
 
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
-            const cpfCnpj = document
-              .getElementById("cpf_cnpj")
-              .value.replace(/\D/g, "")
-              .trim();
+            const cpfCnpjInputElement = document.getElementById("cpf_cnpj");
+            const cpfCnpjInput = cpfCnpjInputElement.value
+              .trim()
+              .replace(/\D/g, "");
             const telefone = document
               .getElementById("telefone")
-              .value.replace(/\D/g, "")
-              .trim();
+              .value.trim()
+              .replace(/\D/g, "");
             const senha = document.getElementById("senha").value;
 
-            if (!nome || !email || !cpfCnpj || !telefone || !senha) {
+            // Validação CPF/CNPJ ANTES DE QUALQUER OUTRA COISA
+            if (!cpfCnpjInput) {
+              alert("O campo CPF/CNPJ não pode estar vazio!");
+              return;
+            }
+
+            if (cpfCnpjInput.length === 11) {
+              if (!validarCPF(cpfCnpjInput)) {
+                alert("CPF inválido!");
+                cpfCnpjInputElement.value = ""; // Limpa o campo
+                return;
+              }
+            } else if (cpfCnpjInput.length === 14) {
+              if (!validarCNPJ(cpfCnpjInput)) {
+                alert("CNPJ inválido!");
+                cpfCnpjInputElement.value = ""; // Limpa o campo
+                return;
+              }
+            } else {
+              alert("CPF ou CNPJ inválido!");
+              cpfCnpjInputElement.value = ""; // Limpa o campo
+              return;
+            }
+
+            // Validação dos demais campos
+            if (!nome || !email || !telefone || !senha) {
               alert("Todos os campos são obrigatórios.");
               return;
             }
@@ -190,7 +215,6 @@
                 where("email", "==", email)
               );
               const emailSnapshot = await getDocs(userQueryByEmail);
-
               if (!emailSnapshot.empty) {
                 alert("Já existe um cadastro com este e-mail.");
                 return;
@@ -198,10 +222,9 @@
 
               const userQueryByCpfCnpj = query(
                 collection(db, "responsaveis"),
-                where("cpfCnpj", "==", cpfCnpj)
+                where("cpfCnpj", "==", cpfCnpjInput)
               );
               const cpfCnpjSnapshot = await getDocs(userQueryByCpfCnpj);
-
               if (!cpfCnpjSnapshot.empty) {
                 alert("Já existe um cadastro com este CPF/CNPJ.");
                 return;
@@ -212,15 +235,12 @@
                 where("telefone", "==", telefone)
               );
               const phoneSnapshot = await getDocs(userQueryByPhone);
-
               if (!phoneSnapshot.empty) {
-                const phoneData = phoneSnapshot.docs[0].data();
-                if (phoneData.telefone === telefone) {
-                  alert("Já existe um cadastro com este número de telefone.");
-                  return;
-                }
+                alert("Já existe um cadastro com este número de telefone.");
+                return;
               }
 
+              // Criar usuário no Firebase Authentication
               const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 email,
@@ -228,11 +248,12 @@
               );
               const userId = userCredential.user.uid;
 
+              // Salvar no Firestore
               await addDoc(collection(db, "responsaveis"), {
                 uid: userId,
                 nome,
                 email,
-                cpfCnpj,
+                cpfCnpj: cpfCnpjInput,
                 telefone,
                 dataCadastro: new Date(),
               });
@@ -242,6 +263,87 @@
             } catch (error) {
               console.error("Erro ao cadastrar: ", error);
               alert("Erro ao cadastrar: " + error.message);
+            }
+          });
+        // Função para validar CPF
+        function validarCPF(cpf) {
+          cpf = cpf.replace(/\D/g, ""); // Remove caracteres não numéricos
+          if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+          let soma = 0,
+            resto;
+          for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+          resto = (soma * 10) % 11;
+          if (resto === 10 || resto === 11) resto = 0;
+          if (resto !== parseInt(cpf[9])) return false;
+
+          soma = 0;
+          for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+          resto = (soma * 10) % 11;
+          if (resto === 10 || resto === 11) resto = 0;
+          return resto === parseInt(cpf[10]);
+        }
+
+        // Função para validar CNPJ
+        function validarCNPJ(cnpj) {
+          cnpj = cnpj.replace(/\D/g, ""); // Remove caracteres não numéricos
+          if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+
+          let tamanho = cnpj.length - 2;
+          let numeros = cnpj.substring(0, tamanho);
+          let digitos = cnpj.substring(tamanho);
+          let soma = 0,
+            pos = tamanho - 7;
+
+          for (let i = tamanho; i >= 1; i--) {
+            soma += numeros[tamanho - i] * pos--;
+            if (pos < 2) pos = 9;
+          }
+          let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+          if (resultado != digitos[0]) return false;
+
+          tamanho++;
+          numeros = cnpj.substring(0, tamanho);
+          soma = 0;
+          pos = tamanho - 7;
+          for (let i = tamanho; i >= 1; i--) {
+            soma += numeros[tamanho - i] * pos--;
+            if (pos < 2) pos = 9;
+          }
+          resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+          return resultado == digitos[1];
+        }
+
+        // Aplicar validação no formulário
+        document
+          .getElementById("cadastroForm")
+          .addEventListener("submit", function (event) {
+            const cpfCnpjInputElement = document.getElementById("cpf_cnpj");
+            const cpfCnpjInput = cpfCnpjInputElement.value.trim();
+
+            if (!cpfCnpjInput) {
+              event.preventDefault();
+              return;
+            }
+
+            if (cpfCnpjInput.length === 14) {
+              if (!validarCPF(cpfCnpjInput)) {
+                alert("CPF inválido!");
+                cpfCnpjInputElement.value = ""; // Limpa o campo
+                event.preventDefault();
+                return;
+              }
+            } else if (cpfCnpjInput.length === 18) {
+              if (!validarCNPJ(cpfCnpjInput)) {
+                alert("CNPJ inválido!");
+                cpfCnpjInputElement.value = ""; // Limpa o campo
+                event.preventDefault();
+                return;
+              }
+            } else {
+              alert("CPF ou CNPJ inválido!");
+              cpfCnpjInputElement.value = ""; // Limpa o campo
+              event.preventDefault();
             }
           });
       })();
@@ -316,7 +418,6 @@
       </button>
     </div>
 
-    <div class="version-label">versão 1.0-beta tester</div>
-
+    <div class="version-label">versão 1.1-beta</div>
   </body>
 </html>
