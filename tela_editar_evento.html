@@ -264,6 +264,11 @@
           alert("ID do evento não encontrado.");
         }
       })();
+
+      document.querySelectorAll("a").forEach(link => {
+  link.href = link.href.replace(/\.html$/, "");
+});
+
     </script>
   </body>
 </html>

@@ -453,6 +453,10 @@
         window.deleteEvent = deleteEvent;
         window.editEvent = editEvent;
       })();
+
+      document.querySelectorAll("a").forEach((link) => {
+        link.href = link.href.replace(/\.html$/, "");
+      });
     </script>
   </body>
 </html>

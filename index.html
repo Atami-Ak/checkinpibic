@@ -344,6 +344,10 @@
             "Erro ao carregar configurações do sistema. Tente novamente mais tarde.";
           document.getElementById("system-message").style.color = "red";
         });
+
+      document.querySelectorAll("a").forEach((link) => {
+        link.href = link.href.replace(/\.html$/, "");
+      });
     </script>
   </body>
 </html>

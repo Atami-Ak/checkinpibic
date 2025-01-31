@@ -239,6 +239,11 @@
         window.saveEvent = saveEvent;
         window.getAddressFromCEP = getAddressFromCEP;
       })();
+
+      document.querySelectorAll("a").forEach(link => {
+  link.href = link.href.replace(/\.html$/, "");
+});
+
     </script>
   </head>
   <body>
