@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ceep Check-in</title>
+    <title>Check-in Event</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -160,7 +160,7 @@
     </style>
   </head>
   <body>
-    <div class="welcome-text">Bem-vindo ao Ceep Check-in</div>
+    <div class="welcome-text">Bem-vindo ao Check-in Event</div>
 
     <div id="global-message" class="global-message"></div>
 
@@ -173,7 +173,7 @@
       <div class="login-form">
         <h1>Login</h1>
         <div class="input-group">
-          <label for="user">CPF, CNPJ ou E-mail</label>
+          <label for="user">E-mail</label>
           <input
             type="text"
             id="user"
@@ -238,7 +238,7 @@
 
             if (!user) {
               document.getElementById("user-error").innerText =
-                "Por favor, insira seu CPF, CNPJ ou E-mail.";
+                "Por favor, insira seu E-mail.";
               hasError = true;
             }
 
