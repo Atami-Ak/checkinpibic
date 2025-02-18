@@ -341,10 +341,9 @@
         }
       })();
 
-      document.querySelectorAll("a").forEach(link => {
-  link.href = link.href.replace(/\.html$/, "");
-});
-
+      document.querySelectorAll("a").forEach((link) => {
+        link.href = link.href.replace(/\.html$/, "");
+      });
     </script>
   </head>
   <body>
@@ -395,6 +394,6 @@
       <p></p>
     </div>
 
-    <div class="version-label">versão 1.1-beta</div>
+    <div class="version-label">Versão 1.2</div>
   </body>
 </html>

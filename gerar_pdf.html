@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerar PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        text-align: center;
+        background-color: #f5f5f5;
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="font-family: 'Montserrat', sans-serif; color: #333">
+      Gerando PDF...
+    </h1>
+    <div id="qrcode" style="display: none"></div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+      async function fetchFirebaseConfig() {
+        const response = await fetch("firebase-config.json");
+        return response.json();
+      }
+
+      async function gerarPDF() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get("eventId");
+
+        if (!eventId) {
+          alert("ID do evento não encontrado!");
+          return;
+        }
+
+        const firebaseConfig = await fetchFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const eventoRef = doc(db, "eventos", eventId);
+        const eventoSnap = await getDoc(eventoRef);
+
+        if (!eventoSnap.exists()) {
+          alert("Evento não encontrado!");
+          return;
+        }
+
+        const evento = eventoSnap.data();
+
+        const qrDiv = document.getElementById("qrcode");
+        new QRCode(qrDiv, {
+          text: `${window.location.origin}/tela_login_evento.html?eventId=${eventId}`,
+          width: 150,
+          height: 150,
+        });
+
+        setTimeout(() => {
+          const qrCanvas = qrDiv.querySelector("canvas");
+          if (!qrCanvas) {
+            alert("Erro ao gerar QR Code!");
+            return;
+          }
+
+          const qrDataUrl = qrCanvas.toDataURL("image/png");
+
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4",
+          });
+
+          doc.setFillColor(240, 240, 240);
+          doc.rect(0, 0, 210, 297, "F");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(26);
+          doc.text("Credenciamento", 105, 20, null, null, "center");
+          doc.setFontSize(16);
+          doc.text(
+            "Escaneie o QR Code para confirmar sua presença",
+            105,
+            30,
+            null,
+            null,
+            "center"
+          );
+
+          doc.setDrawColor(0);
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(20, 40, 170, 80, 5, 5, "F");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(18);
+          doc.text(`Evento: ${evento.nome}`, 25, 50);
+          doc.setFontSize(14);
+          doc.text(`Descrição: ${evento.descricao}`, 25, 60, { maxWidth: 160 });
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(14);
+          doc.text(
+            `Data: ${new Date(evento.dataHora).toLocaleString("pt-BR")}`,
+            25,
+            80
+          );
+          doc.text(`Local: ${evento.localEvento}`, 25, 90);
+          doc.text(`Endereço: ${evento.endereco}, ${evento.numero}`, 25, 100);
+          doc.text(
+            `${evento.bairro}, ${evento.cidade} - ${evento.estado}`,
+            25,
+            110
+          );
+
+          doc.addImage(qrDataUrl, "PNG", 65, 130, 80, 80);
+
+          // Adicionando imagem ao lado do texto "Powered by: Check-in event Versão 1.2"
+          const logoUrl = "imagem1fundo.png"; // Caminho relativo à imagem
+          doc.addImage(logoUrl, "PNG", 115, 283, 20, 20); // Pequena e alinhada ao texto
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(10);
+          doc.text("Powered by: Check-in event Versão 1.2", 135, 295); // Ajuste fino do texto ao lado da imagem
+
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(12);
+          doc.text(
+            "Apresente este QR Code na entrada do evento",
+            105,
+            220,
+            null,
+            null,
+            "center"
+          );
+
+          doc.save(`Credenciamento_${evento.nome}.pdf`);
+
+          setTimeout(() => window.close(), 1000);
+        }, 1500);
+      }
+
+      gerarPDF();
+    </script>
+  </body>
+</html>

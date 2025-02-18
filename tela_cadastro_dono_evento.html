@@ -85,6 +85,11 @@
         background-color: #0056b3;
       }
 
+      button:disabled {
+        background-color: #6c757d; /* Cor cinza para o botão desabilitado */
+        cursor: not-allowed;
+      }
+
       #limpar {
         background-color: #dc3545;
       }
@@ -167,6 +172,11 @@
           .addEventListener("submit", async function (event) {
             event.preventDefault(); // Impede o envio automático
 
+            const submitButton = document.querySelector(
+              "button[type='submit']"
+            );
+            submitButton.disabled = true; // Desabilita o botão e muda sua cor
+
             const nome = document.getElementById("nome").value.trim();
             const email = document.getElementById("email").value.trim();
             const cpfCnpjInputElement = document.getElementById("cpf_cnpj");
@@ -182,6 +192,7 @@
             // Validação CPF/CNPJ ANTES DE QUALQUER OUTRA COISA
             if (!cpfCnpjInput) {
               alert("O campo CPF/CNPJ não pode estar vazio!");
+              submitButton.disabled = false; // Habilita o botão de volta
               return;
             }
 
@@ -189,23 +200,27 @@
               if (!validarCPF(cpfCnpjInput)) {
                 alert("CPF inválido!");
                 cpfCnpjInputElement.value = ""; // Limpa o campo
+                submitButton.disabled = false; // Habilita o botão de volta
                 return;
               }
             } else if (cpfCnpjInput.length === 14) {
               if (!validarCNPJ(cpfCnpjInput)) {
                 alert("CNPJ inválido!");
                 cpfCnpjInputElement.value = ""; // Limpa o campo
+                submitButton.disabled = false; // Habilita o botão de volta
                 return;
               }
             } else {
               alert("CPF ou CNPJ inválido!");
               cpfCnpjInputElement.value = ""; // Limpa o campo
+              submitButton.disabled = false; // Habilita o botão de volta
               return;
             }
 
             // Validação dos demais campos
             if (!nome || !email || !telefone || !senha) {
               alert("Todos os campos são obrigatórios.");
+              submitButton.disabled = false; // Habilita o botão de volta
               return;
             }
 
@@ -217,6 +232,7 @@
               const emailSnapshot = await getDocs(userQueryByEmail);
               if (!emailSnapshot.empty) {
                 alert("Já existe um cadastro com este e-mail.");
+                submitButton.disabled = false; // Habilita o botão de volta
                 return;
               }
 
@@ -227,6 +243,7 @@
               const cpfCnpjSnapshot = await getDocs(userQueryByCpfCnpj);
               if (!cpfCnpjSnapshot.empty) {
                 alert("Já existe um cadastro com este CPF/CNPJ.");
+                submitButton.disabled = false; // Habilita o botão de volta
                 return;
               }
 
@@ -237,6 +254,7 @@
               const phoneSnapshot = await getDocs(userQueryByPhone);
               if (!phoneSnapshot.empty) {
                 alert("Já existe um cadastro com este número de telefone.");
+                submitButton.disabled = false; // Habilita o botão de volta
                 return;
               }
 
@@ -263,8 +281,19 @@
             } catch (error) {
               console.error("Erro ao cadastrar: ", error);
               alert("Erro ao cadastrar: " + error.message);
+            } finally {
+              submitButton.disabled = false; // Reabilita o botão após o processamento
             }
           });
+
+        document
+          .getElementById("toggleSenha")
+          .addEventListener("click", function () {
+            const senhaInput = document.getElementById("senha");
+            senhaInput.type =
+              senhaInput.type === "password" ? "text" : "password";
+          });
+
         // Função para validar CPF
         function validarCPF(cpf) {
           cpf = cpf.replace(/\D/g, ""); // Remove caracteres não numéricos
@@ -313,45 +342,7 @@
           resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
           return resultado == digitos[1];
         }
-
-        // Aplicar validação no formulário
-        document
-          .getElementById("cadastroForm")
-          .addEventListener("submit", function (event) {
-            const cpfCnpjInputElement = document.getElementById("cpf_cnpj");
-            const cpfCnpjInput = cpfCnpjInputElement.value.trim();
-
-            if (!cpfCnpjInput) {
-              event.preventDefault();
-              return;
-            }
-
-            if (cpfCnpjInput.length === 14) {
-              if (!validarCPF(cpfCnpjInput)) {
-                alert("CPF inválido!");
-                cpfCnpjInputElement.value = ""; // Limpa o campo
-                event.preventDefault();
-                return;
-              }
-            } else if (cpfCnpjInput.length === 18) {
-              if (!validarCNPJ(cpfCnpjInput)) {
-                alert("CNPJ inválido!");
-                cpfCnpjInputElement.value = ""; // Limpa o campo
-                event.preventDefault();
-                return;
-              }
-            } else {
-              alert("CPF ou CNPJ inválido!");
-              cpfCnpjInputElement.value = ""; // Limpa o campo
-              event.preventDefault();
-            }
-          });
       })();
-
-      document.querySelectorAll("a").forEach(link => {
-  link.href = link.href.replace(/\.html$/, "");
-});
-
     </script>
   </head>
   <body>
@@ -402,7 +393,7 @@
           />
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="position: relative">
           <label for="senha">Senha:</label>
           <input
             type="password"
@@ -413,6 +404,12 @@
             title="A senha deve ter pelo menos 8 caracteres, um número e um caractere especial"
             required
           />
+          <span
+            id="toggleSenha"
+            style="position: absolute; right: 10px; top: 30px; cursor: pointer"
+          >
+            👁️
+          </span>
         </div>
 
         <button type="submit">Cadastrar</button>
@@ -423,6 +420,6 @@
       </button>
     </div>
 
-    <div class="version-label">versão 1.1-beta</div>
+    <div class="version-label">Versão 1.2</div>
   </body>
 </html>

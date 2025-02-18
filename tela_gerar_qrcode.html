@@ -11,7 +11,7 @@
     <style>
       body {
         font-family: "Roboto", sans-serif;
-        background: linear-gradient(120deg, #84fab0, #8fd3f4);
+        background: linear-gradient(120deg, #f2f2f2, #f2f2f2);
         margin: 0;
         display: flex;
         justify-content: center;
@@ -83,17 +83,17 @@
       }
 
       .version-label {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
     </style>
   </head>
   <body>
@@ -109,6 +109,7 @@
       <button class="btn-download" id="downloadButton" style="display: none">
         Baixar QR Code
       </button>
+      <button id="gerarPDF">Gerar PDF</button>
       <button
         class="btn-back"
         onclick="window.location.href='telaintermediaria.html'"
@@ -117,8 +118,7 @@
       </button>
     </div>
 
-    <div class="version-label">versão 1.1-beta</div>
-
+    <div class="version-label">Versão 1.2</div>
 
     <script>
       document.addEventListener("DOMContentLoaded", async () => {
@@ -182,10 +182,24 @@
         });
       });
 
-      document.querySelectorAll("a").forEach(link => {
-  link.href = link.href.replace(/\.html$/, "");
-});
+      document.querySelectorAll("a").forEach((link) => {
+        link.href = link.href.replace(/\.html$/, "");
+      });
+      document
+        .getElementById("gerarPDF")
+        .addEventListener("click", function () {
+          // Supondo que o ID do evento esteja armazenado na variável eventId
+          const eventId = new URLSearchParams(window.location.search).get(
+            "eventId"
+          );
+          if (!eventId) {
+            alert("ID do evento não encontrado!");
+            return;
+          }
 
+          // Abrir a nova página para gerar o PDF
+          window.open(`gerar_pdf.html?eventId=${eventId}`, "_blank");
+        });
     </script>
   </body>
 </html>

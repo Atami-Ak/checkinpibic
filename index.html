@@ -5,15 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Check-in Event</title>
     <style>
+      @media (min-width: 769px) {
+        .container {
+          flex-direction: row; /* Alinha lado a lado */
+          gap: 20px; /* Espaço entre os blocos */
+          padding: 30px;
+        }
+
+        .login-form {
+          border-right: none; /* Remover a borda separadora */
+        }
+
+        .login-form,
+        .register-info {
+          width: 50%; /* Cada um ocupa metade do espaço */
+          max-width: 400px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column; /* Empilha um em cima do outro */
+          align-items: center;
+        }
+
+        .login-form,
+        .register-info {
+          width: 100%;
+          max-width: 450px;
+        }
+      }
+
       body {
         font-family: Arial, sans-serif;
         background-color: #f2f2f2;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         margin: 0;
         flex-direction: column;
+        overflow-y: auto;
       }
 
       .welcome-text {
@@ -26,18 +58,37 @@
 
       .container {
         display: flex;
-        width: 80%;
-        max-width: 1200px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        align-items: center;
+        justify-content: center;
+        width: 90%; /* Reduz a largura para melhor adaptação */
+        max-width: 900px; /* Ajusta para acompanhar os quadros */
+        padding: 20px;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         overflow: hidden;
       }
 
       .login-form,
       .register-info {
-        padding: 20px;
-        flex: 1;
+        width: 100%;
+        max-width: 450px; /* Aumenta o tamanho máximo para melhor legibilidade */
+        padding: 25px;
+        border-radius: 20px; /* Maior arredondamento para suavizar o design */
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center; /* Centraliza os textos dentro do quadro */
+        overflow: hidden; /* Evita que conteúdos indesejados ultrapassem os limites */
+        font-family: "Poppins", sans-serif; /* Fonte mais moderna e estilosa */
+      }
+
+      .login-form h1,
+      .register-info p {
+        font-size: 22px;
+        font-weight: bold;
+        color: #222;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
       }
 
       .login-form {
@@ -61,9 +112,12 @@
 
       .input-group input {
         width: 100%;
-        padding: 10px;
-        border-radius: 5px;
+        padding: 12px; /* Ajuste uniforme do padding */
+        font-size: 16px;
+        border-radius: 8px;
         border: 1px solid #ccc;
+        transition: 0.3s;
+        box-sizing: border-box; /* Garante que padding e border não alterem o tamanho total */
       }
 
       .btn {
@@ -141,6 +195,23 @@
         text-decoration: none;
       }
 
+      .image-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 20px;
+
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .image-container img {
+        width: 300px;
+        height: 300px;
+        border-radius: 10px;
+      }
+
       .forgot-password-link:hover {
         text-decoration: underline;
       }
@@ -160,7 +231,11 @@
     </style>
   </head>
   <body>
-    <div class="welcome-text">Bem-vindo ao Check-in Event</div>
+    <div class="welcome-text"></div>
+
+    <div class="image-container">
+      <img src="imagem1fundo.png" alt="Imagem ilustrativa" />
+    </div>
 
     <div id="global-message" class="global-message"></div>
 
@@ -177,13 +252,32 @@
           <input
             type="text"
             id="user"
-            placeholder="Digite seu CPF, CNPJ ou E-mail"
+            placeholder="Digite sua senha"
+            style="width: 100%; padding-right: 40px"
           />
           <div id="user-error" class="form-error"></div>
         </div>
         <div class="input-group">
           <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="Digite sua senha" />
+          <div style="position: relative; display: flex; align-items: center">
+            <input
+              type="password"
+              id="password"
+              placeholder="Digite sua senha"
+              style="width: 100%; padding-right: 40px"
+            />
+            <span
+              id="togglePassword"
+              style="
+                position: absolute;
+                right: 10px;
+                cursor: pointer;
+                user-select: none;
+              "
+            >
+              👁️
+            </span>
+          </div>
           <div id="password-error" class="form-error"></div>
         </div>
         <a href="recuperar_senha.html" class="forgot-password-link"
@@ -198,7 +292,7 @@
       </div>
     </div>
 
-    <div class="version-label">versão 1.1-beta</div>
+    <div class="version-label">Versão 1.2</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
@@ -347,6 +441,31 @@
 
       document.querySelectorAll("a").forEach((link) => {
         link.href = link.href.replace(/\.html$/, "");
+      });
+
+      document
+        .getElementById("togglePassword")
+        .addEventListener("click", function () {
+          const passwordInput = document.getElementById("password");
+          if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            this.textContent = "👁️"; // Ícone de olho fechado
+          } else {
+            passwordInput.type = "password";
+            this.textContent = "👁️"; // Ícone de olho aberto
+          }
+        });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const loginForm = document.querySelector(".login-form");
+
+        // Garante que ao pressionar Enter no formulário, o login seja realizado corretamente
+        loginForm.addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault(); // Evita qualquer comportamento inesperado
+            validateLogin(); // Chama a função de login
+          }
+        });
       });
     </script>
   </body>
