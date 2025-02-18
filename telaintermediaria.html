@@ -21,18 +21,22 @@
         color: #333;
         display: flex;
         justify-content: center;
-        align-items: center;
-        height: 100vh;
+        align-items: flex-start; /* Alinhar ao topo para permitir rolagem */
+        min-height: 100vh; /* Usar min-height ao invés de height */
         position: relative;
       }
 
       .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 800px;
+        .container {
+          background: #fff;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+          width: 100%;
+          max-width: 800px;
+          overflow-y: auto; /* Adiciona barra de rolagem interna */
+          max-height: 90vh; /* Limita a altura */
+        }
       }
 
       h1 {
