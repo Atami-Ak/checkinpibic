@@ -5,55 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Check-in Event</title>
     <style>
-      @media (max-width: 720px) {
-        body {
-          overflow: hidden; /* Remove a rolagem */
-          justify-content: flex-start; /* Mantém tudo visível no topo */
-          padding-top: 10px; /* Pequeno espaço no topo para evitar cortes */
+      @media (min-width: 769px) {
+        .container {
+          flex-direction: row; /* Alinha lado a lado */
+          gap: 20px; /* Espaço entre os blocos */
+          padding: 30px;
         }
-
         .image-container {
-          margin-bottom: 5px; /* Aproxima a imagem */
-          padding: 0;
-          max-width: 140px; /* Reduz ainda mais a largura */
+          max-width: 250px; /* Ajuste maior para celulares */
         }
 
         .image-container img {
-          width: 100%;
-          height: auto;
-          max-height: 80px; /* Mantém a imagem pequena */
-          object-fit: contain;
+          max-height: 150px;
         }
 
-        .container {
-          flex-direction: column; /* Mantém os elementos empilhados */
-          padding: 0;
-          max-width: 100%;
-          background: none; /* Remove o fundo branco */
-          box-shadow: none; /* Remove qualquer sombra */
+        .login-form {
+          border-right: none; /* Remover a borda separadora */
         }
 
         .login-form,
         .register-info {
-          width: 100%; /* Usa toda a largura disponível */
-          max-width: 300px;
-          padding: 10px;
-          background: none; /* Remove o fundo branco */
-          box-shadow: none; /* Remove qualquer sombra */
+          width: 50%; /* Cada um ocupa metade do espaço */
+          max-width: 400px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column; /* Empilha um em cima do outro */
+          align-items: center;
         }
 
-        .login-form {
-          border-right: none; /* Remove a separação */
-          margin-bottom: 5px; /* Mantém um pequeno espaço entre os blocos */
-        }
-
-        h1 {
-          font-size: 18px; /* Ajuste fino do tamanho do título */
-        }
-
-        .btn {
-          font-size: 14px;
-          padding: 8px;
+        .login-form,
+        .register-info {
+          width: 100%;
+          max-width: 450px;
         }
       }
 
@@ -220,10 +206,10 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-bottom: 10px; /* Reduz o espaço inferior */
         padding: 10px;
         width: 100%;
-        max-width: 320px; /* Ajuste para telas menores */
+        max-width: 220px; /* Reduz um pouco a largura */
+        margin-bottom: -20px; /* Aproxima a imagem da caixa de login */
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       }
@@ -231,7 +217,7 @@
       .image-container img {
         width: 100%;
         height: auto;
-        max-height: 200px; /* Reduz a altura */
+        max-height: 130px; /* Reduz a altura da imagem */
         object-fit: contain; /* Mantém a proporção da imagem */
         border-radius: 5px; /* Arredondamento mais sutil */
       }
@@ -316,7 +302,7 @@
       </div>
     </div>
 
-    <div class="version-label">Versão 1.2</div>
+    <div class="version-label">versão 1.1-beta</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
