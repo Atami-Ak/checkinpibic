@@ -97,6 +97,7 @@
         align-items: center;
         gap: 8px;
       }
+
       .btn-back {
         padding: 10px 20px;
         font-size: 16px;
@@ -147,6 +148,7 @@
       }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.19/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -160,6 +162,7 @@
         getDoc,
       } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
+      // Carrega a configuração do Firebase
       async function fetchFirebaseConfig() {
         const response = await fetch("firebase-config.json");
         return response.json();
@@ -204,6 +207,13 @@
               const data = doc.data();
               checkins.push(data);
 
+              // Verificar se checkInTime é um Timestamp e convertê-lo para uma data legível
+              let checkInTimeFormatted = "Não registrado";
+              if (data.checkInTime && data.checkInTime.toDate) {
+                const checkInDate = data.checkInTime.toDate(); // Converte o Timestamp para objeto Date
+                checkInTimeFormatted = checkInDate.toLocaleString(); // Formata a data e hora
+              }
+
               const item = document.createElement("div");
               item.classList.add("checkin-item");
               item.innerHTML = `
@@ -211,6 +221,7 @@
                 <span><strong>CPF:</strong> ${data.cpf}</span>
                 <span><strong>Telefone:</strong> ${data.telefone}</span>
                 <span><strong>Email:</strong> ${data.email}</span>
+                <span><strong>Check-in:</strong> ${checkInTimeFormatted}</span>
               `;
               checkinList.appendChild(item);
             });
@@ -236,56 +247,116 @@
         await loadEventName();
         await loadCheckins();
 
+        // Função de download em PDF com formato de tabela
         window.downloadPDF = function () {
-          if (checkins.length === 0) {
-            alert("Não é possível baixar o arquivo porque não houve check-in.");
-            return;
-          }
-
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
+
+          // Cabeçalho e título do documento
           doc.setFont("Arial", "B", 16);
-          doc.text("Lista de Participantes", 10, 10);
+          doc.text("Evento: " + nomeDoEvento, 10, 10);
+          doc.text("Lista de Participantes", 10, 20);
 
-          // Cabeçalho da tabela
-          doc.setFont("Arial", "B", 12);
-          doc.text("Nome", 10, 20);
-          doc.text("CPF", 60, 20);
-          doc.text("Telefone", 100, 20);
-          doc.text("Email", 140, 20);
-          doc.setLineWidth(0.5);
-          doc.line(10, 22, 200, 22); // Linha horizontal
+          // Configuração da tabela usando o plugin autoTable
+          const tableColumn = ["Nome", "CPF", "Telefone", "Email", "Check-in"];
+          const tableRows = [];
 
-          let y = 30; // Começar logo após a linha
-          const marginBottom = 10;
-
-          checkins.forEach((item, index) => {
-            if (y >= 270) {
-              // Nova página se necessário
-              doc.addPage();
-              y = 20;
-            }
-
-            doc.setFont("Arial", "I", 10);
-            doc.text(item.nomeCompleto, 10, y);
-            doc.text(item.cpf, 60, y);
-            doc.text(item.telefone, 100, y);
-            doc.text(item.email, 140, y);
-            y += 10;
+          // Se houver check-ins, preenche a tabela
+          checkins.forEach((item) => {
+            const checkInFormatted = item.checkInTime
+              ? item.checkInTime.toDate().toLocaleString()
+              : "Não registrado";
+            const row = [
+              item.nomeCompleto,
+              item.cpf,
+              item.telefone,
+              item.email,
+              checkInFormatted,
+            ];
+            tableRows.push(row);
           });
 
+          // Gerando a tabela se houver check-ins
+          if (tableRows.length > 0) {
+            doc.autoTable({
+              startY: 30, // Inicia após o título e o nome do evento
+              head: [tableColumn], // Cabeçalho
+              body: tableRows, // Dados dos check-ins
+              theme: "grid", // Tabela com bordas
+              headStyles: {
+                fillColor: [0, 91, 191],
+                textColor: 255,
+                fontSize: 12,
+                font: "helvetica",
+                halign: "center",
+              },
+              bodyStyles: {
+                fontSize: 10,
+                halign: "center",
+                valign: "middle",
+              },
+              columnStyles: {
+                0: { cellWidth: 50 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 40 },
+                3: { cellWidth: 60 },
+                4: { cellWidth: 50 },
+              },
+            });
+          } else {
+            // Se não houver check-ins, exibe uma mensagem
+            doc.text("Nenhum check-in registrado para este evento.", 10, 30);
+          }
+
+          // Calcular a posição para o final da página
+          const pageHeight = doc.internal.pageSize.height;
+          const yPosition = doc.lastAutoTable
+            ? doc.lastAutoTable.finalY + 10
+            : 30; // Posição após a tabela ou mensagem
+
+          // Garantir que a imagem e o texto de copyright fiquem no final da página
+          const remainingHeight = pageHeight - yPosition;
+
+          // Adicionar a imagem no final da página, se houver espaço suficiente
+          const imgURL = "imagem1fundo.png"; // Caminho da imagem
+          const imageHeight = 30; // Altura da imagem
+          const imageYPosition = pageHeight - imageHeight - 20; // Posição Y para a imagem no final da página
+          doc.addImage(imgURL, "PNG", 10, imageYPosition, 30, 30);
+
+          // Adicionar o texto de copyright logo abaixo da imagem
+          doc.setFont("Arial", "I", 8); // Fonte menor
+          doc.text(
+            "© Check-in Event 2024. Todos os direitos reservados.",
+            10,
+            imageYPosition + 35
+          ); // Posição abaixo da imagem
+
+          // Gerar o PDF
           doc.save(`${nomeDoEvento}.pdf`);
         };
 
+        // Função de download em Excel
         window.downloadExcel = function () {
           if (checkins.length === 0) {
             alert("Não é possível baixar o arquivo porque não houve check-in.");
             return;
           }
 
-          const ws = XLSX.utils.json_to_sheet(checkins);
+          // Alterando os títulos das colunas para capitalização
+          const formattedCheckins = checkins.map((checkin) => ({
+            Nome: checkin.nomeCompleto,
+            CPF: checkin.cpf,
+            Telefone: checkin.telefone,
+            Email: checkin.email,
+            "Check Time": checkin.checkInTime
+              ? checkin.checkInTime.toDate().toLocaleString()
+              : "Não registrado", // Formatar o Check-in Time
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(formattedCheckins);
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Check-ins");
+          XLSX.utils.book_append_sheet(wb, ws, nomeDoEvento);
+
           XLSX.writeFile(wb, `${nomeDoEvento}.xlsx`);
         };
       })();
@@ -310,7 +381,7 @@
         </button>
       </div>
       <div id="checkinList"></div>
-      <div class="version-label">Versão 1.2</div>
     </div>
+    <div class="version-label">Versão 1.2</div>
   </body>
 </html>
