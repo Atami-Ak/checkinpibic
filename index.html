@@ -7,31 +7,38 @@
     <style>
       @media (max-width: 720px) {
         .image-container {
-          margin-bottom: 5px; /* Reduz ainda mais o espaço abaixo da imagem */
-          padding: 5px;
-          max-width: 220px; /* Ajuste fino para telas pequenas */
+          margin-bottom: 5px; /* Aproxima a imagem do formulário */
+          padding: 0px;
+          max-width: 160px; /* Reduz a largura da imagem */
         }
 
         .image-container img {
           width: 100%;
           height: auto;
-          max-height: 120px; /* Diminui ainda mais a imagem */
-          object-fit: contain; /* Mantém a proporção sem cortes */
+          max-height: 90px; /* Reduz ainda mais a altura */
+          object-fit: contain;
         }
 
         .container {
-          padding: 10px; /* Reduz o padding para economizar espaço */
+          flex-direction: column; /* Mantém os elementos empilhados */
+          padding: 10px;
           max-width: 100%;
         }
 
         .login-form,
         .register-info {
-          padding: 15px; /* Ajuste fino do espaço interno */
-          max-width: 320px; /* Ajuste para telas menores */
+          width: 100%; /* Garante que ocupem toda a largura disponível */
+          max-width: 300px; /* Ajuste fino para melhor encaixe */
+          padding: 15px;
+        }
+
+        .login-form {
+          border-right: none; /* Remove qualquer separação lateral */
+          margin-bottom: 10px; /* Dá um pequeno espaçamento entre os blocos */
         }
 
         h1 {
-          font-size: 20px; /* Reduz o título para ocupar menos espaço */
+          font-size: 18px; /* Reduz o tamanho do título */
         }
 
         .btn {
