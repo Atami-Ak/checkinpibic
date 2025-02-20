@@ -5,41 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Check-in Event</title>
     <style>
-      @media (min-width: 769px) {
-        .container {
-          flex-direction: row; /* Alinha lado a lado */
-          gap: 20px; /* Espaço entre os blocos */
-          padding: 30px;
-        }
+      @media (max-width: 720px) {
         .image-container {
-          max-width: 250px; /* Ajuste maior para celulares */
+          margin-bottom: 5px; /* Reduz ainda mais o espaço abaixo da imagem */
+          padding: 5px;
+          max-width: 220px; /* Ajuste fino para telas pequenas */
         }
 
         .image-container img {
-          max-height: 150px;
-        }
-
-        .login-form {
-          border-right: none; /* Remover a borda separadora */
-        }
-
-        .login-form,
-        .register-info {
-          width: 50%; /* Cada um ocupa metade do espaço */
-          max-width: 400px;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .container {
-          flex-direction: column; /* Empilha um em cima do outro */
-          align-items: center;
-        }
-
-        .login-form,
-        .register-info {
           width: 100%;
-          max-width: 450px;
+          height: auto;
+          max-height: 120px; /* Diminui ainda mais a imagem */
+          object-fit: contain; /* Mantém a proporção sem cortes */
+        }
+
+        .container {
+          padding: 10px; /* Reduz o padding para economizar espaço */
+          max-width: 100%;
+        }
+
+        .login-form,
+        .register-info {
+          padding: 15px; /* Ajuste fino do espaço interno */
+          max-width: 320px; /* Ajuste para telas menores */
+        }
+
+        h1 {
+          font-size: 20px; /* Reduz o título para ocupar menos espaço */
+        }
+
+        .btn {
+          font-size: 14px;
+          padding: 8px;
         }
       }
 
