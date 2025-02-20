@@ -6,39 +6,49 @@
     <title>Check-in Event</title>
     <style>
       @media (max-width: 720px) {
+        body {
+          overflow: hidden; /* Remove a rolagem */
+          justify-content: flex-start; /* Mantém tudo visível no topo */
+          padding-top: 10px; /* Pequeno espaço no topo para evitar cortes */
+        }
+
         .image-container {
-          margin-bottom: 5px; /* Aproxima a imagem do formulário */
-          padding: 0px;
-          max-width: 160px; /* Reduz a largura da imagem */
+          margin-bottom: 5px; /* Aproxima a imagem */
+          padding: 0;
+          max-width: 140px; /* Reduz ainda mais a largura */
         }
 
         .image-container img {
           width: 100%;
           height: auto;
-          max-height: 90px; /* Reduz ainda mais a altura */
+          max-height: 80px; /* Mantém a imagem pequena */
           object-fit: contain;
         }
 
         .container {
           flex-direction: column; /* Mantém os elementos empilhados */
-          padding: 10px;
+          padding: 0;
           max-width: 100%;
+          background: none; /* Remove o fundo branco */
+          box-shadow: none; /* Remove qualquer sombra */
         }
 
         .login-form,
         .register-info {
-          width: 100%; /* Garante que ocupem toda a largura disponível */
-          max-width: 300px; /* Ajuste fino para melhor encaixe */
-          padding: 15px;
+          width: 100%; /* Usa toda a largura disponível */
+          max-width: 300px;
+          padding: 10px;
+          background: none; /* Remove o fundo branco */
+          box-shadow: none; /* Remove qualquer sombra */
         }
 
         .login-form {
-          border-right: none; /* Remove qualquer separação lateral */
-          margin-bottom: 10px; /* Dá um pequeno espaçamento entre os blocos */
+          border-right: none; /* Remove a separação */
+          margin-bottom: 5px; /* Mantém um pequeno espaço entre os blocos */
         }
 
         h1 {
-          font-size: 18px; /* Reduz o tamanho do título */
+          font-size: 18px; /* Ajuste fino do tamanho do título */
         }
 
         .btn {
